@@ -11,6 +11,7 @@
 #SBATCH --partition=bigTiger                 # Partition to submit to (adjust based on availability)
 
 # ########################################
+# conda activate trans_u_env
 # sbatch run_job_UAV_HSI_Crop.sh
 # squeue -p bigTiger -u $USER -O jobid,partition,username,state,reasonlist,gres
 

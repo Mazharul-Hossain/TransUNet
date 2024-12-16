@@ -5,7 +5,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
-from trainer import trainer_synapse, trainer_acdc
+from trainer import trainer_synapse, trainer_acdc, trainer_uav_hsi
 from common_parser import get_common_parser, dataset_config
 
 
@@ -79,5 +79,6 @@ if __name__ == "__main__":
     trainer = {
         "Synapse": trainer_synapse,
         "ACDC": trainer_acdc,
+        "HSI_UAV": trainer_uav_hsi,
     }
     trainer[dataset_name](args, net, snapshot_path)
