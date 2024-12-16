@@ -12,6 +12,8 @@
 
 # ########################################
 # conda activate trans_u_env
+# git reset --hard
+# git pull origin master
 # sbatch run_job_UAV_HSI_Crop.sh
 # squeue -p bigTiger -u $USER -O jobid,partition,username,state,reasonlist,gres
 

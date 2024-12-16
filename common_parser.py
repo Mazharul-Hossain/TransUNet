@@ -1,13 +1,13 @@
 import argparse
-from .datasets import Synapse_dataset
+from datasets import Synapse_dataset
 
 try:
-    from .datasets import ACDC_dataset
+    from datasets import ACDC_dataset
 except:
     pass
 
 try:
-    from .datasets import UAV_HSI_Crop_dataset
+    from datasets import UAV_HSI_Crop_dataset
 except:
     pass
 
