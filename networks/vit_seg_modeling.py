@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from torch.nn import CrossEntropyLoss, Dropout, Softmax, Linear, Conv2d, LayerNorm
+from torch.nn import Dropout, Softmax, Linear, Conv2d, LayerNorm
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
 from . import vit_seg_configs as configs
@@ -478,15 +478,15 @@ class VisionTransformer(nn.Module):
                 self.transformer.embeddings.position_embeddings.copy_(posemb)
             else:
                 logger.info(
-                    "load_pretrained: resized variant: %s to %s"
-                    % (posemb.size(), posemb_new.size())
+                    "load_pretrained: resized variant: %s to %s", posemb.size(), posemb_new.size()
                 )
                 ntok_new = posemb_new.size(1)
                 if self.classifier == "seg":
                     _, posemb_grid = posemb[:, :1], posemb[0, 1:]
                 gs_old = int(np.sqrt(len(posemb_grid)))
                 gs_new = int(np.sqrt(ntok_new))
-                print("load_pretrained: grid-size from %s to %s" % (gs_old, gs_new))
+                print("load_pretrained: grid-size from %s to %s", gs_old, gs_new)
+                
                 posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
                 zoom = (gs_new / gs_old, gs_new / gs_old, 1)
                 posemb_grid = ndimage.zoom(posemb_grid, zoom, order=1)  # th2np

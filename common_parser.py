@@ -1,4 +1,15 @@
 import argparse
+from .datasets import Synapse_dataset
+
+try:
+    from .datasets import ACDC_dataset
+except:
+    pass
+
+try:
+    from .datasets import UAV_HSI_Crop_dataset
+except:
+    pass
 
 
 def get_common_parser(state="training"):
@@ -101,3 +112,35 @@ def get_common_parser(state="training"):
         )
 
     return parser
+
+
+dataset_config = {
+    "ACDC": {
+        "Dataset": ACDC_dataset,
+        "root_path": "/project/mhssain9/data/ACDC",
+        "volume_path": "/project/mhssain9/data/ACDC",
+        "list_dir": None,
+        "num_classes": 4,
+        "z_spacing": 5,
+        "info": "3D",
+    },
+    "HSI_UAV": {
+        "Dataset": UAV_HSI_Crop_dataset,
+        "root_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",
+        "volume_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",
+        "list_dir": None,
+        "num_classes": 29,
+        "z_spacing": 5,
+        "info": "hsi",
+    },
+    "Synapse": {
+        "Dataset": Synapse_dataset,
+        "root_path": "/project/mhssain9/data/Synapse/train_npz",
+        # "root_path": r"D:\Downloads\project\project_TransUNet\data\Synapse\train_npz",
+        "volume_path": "/project/mhssain9/data/Synapse/test_vol_h5",
+        # "volume_path": r"D:\Downloads\project\project_TransUNet\data\Synapse\test_vol_h5",
+        "list_dir": "./lists/lists_Synapse",
+        "num_classes": 9,
+        "z_spacing": 1,
+    },
+}
