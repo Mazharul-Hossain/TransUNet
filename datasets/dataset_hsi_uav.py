@@ -40,5 +40,5 @@ class UAV_HSI_Crop_dataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
 
-        sample["case_name"] = self.sample_list[idx].strip("\n")
+        sample["case_name"] = str(fname)
         return sample
