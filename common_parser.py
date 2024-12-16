@@ -124,7 +124,7 @@ dataset_config = {
         "z_spacing": 5,
         "info": "3D",
     },
-    "HSI_UAV": {
+    "UAV_HSI_Crop": {
         "Dataset": UAV_HSI_Crop_dataset,
         "root_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",
         "volume_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",

@@ -79,6 +79,6 @@ if __name__ == "__main__":
     trainer = {
         "Synapse": trainer_synapse,
         "ACDC": trainer_acdc,
-        "HSI_UAV": trainer_uav_hsi,
+        "UAV_HSI_Crop": trainer_uav_hsi,
     }
     trainer[dataset_name](args, net, snapshot_path)
