@@ -22,7 +22,7 @@ class UAV_HSI_Crop_dataset(Dataset):
             self.all_slices = os.path.join(self.data_dir, "Test")
 
         # self.sample_list = list(glob.glob(self.all_slices + "/gt/*.npy", recursive=True))
-        for root, _, fnames in os.walk(self.all_slices + "/rs/"):
+        for root, _, fnames in os.walk(os.path.join(self.all_slices, "rs")):
             for fname in fnames:
                 self.sample_list.append((fname, os.path.join(root, fname)))
 
@@ -33,7 +33,7 @@ class UAV_HSI_Crop_dataset(Dataset):
         (fname, fin) = self.sample_list[idx]
         image = np.load(fin)
 
-        fin = os.path.join(self.data_dir, "gt", fname)
+        fin = os.path.join(self.all_slices, "gt", fname)
         label = np.load(fin)
 
         sample = {"image": image, "label": label}
