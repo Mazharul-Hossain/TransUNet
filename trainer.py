@@ -154,18 +154,18 @@ def trainer_acdc(args, model, snapshot_path):
 
 
 def trainer_uav_hsi(args, model, snapshot_path):
-    from datasets import ACDC_dataset, RandomGenerator
+    from datasets import UAV_HSI_Crop_dataset, RandomGenerator
 
     base_lr = args.base_lr
     num_classes = args.num_classes
     batch_size = args.batch_size
     max_iterations = args.max_iterations
 
-    db_train = ACDC_dataset(
+    db_train = UAV_HSI_Crop_dataset(
         base_dir=args.root_path,
         transform=transforms.Compose([RandomGenerator([args.img_size, args.img_size])]),
     )
-    db_val = ACDC_dataset(base_dir=args.root_path, split="val")
+    db_val = UAV_HSI_Crop_dataset(base_dir=args.root_path, split="val")
 
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
