@@ -11,7 +11,7 @@
 #SBATCH --partition=bigTiger                 # Partition to submit to (adjust based on availability)
 
 # ########################################
-# sbatch run_job.sh
+# sbatch run_job_UAV_HSI_Crop.sh
 # squeue -p bigTiger -u $USER -O jobid,partition,username,state,reasonlist,gres
 
 # sacct -o JobId%20,MaxVMSize,MaxRSS,NCPUS,ReqTRES%25,ReqMem --units=G -j [jobid]
