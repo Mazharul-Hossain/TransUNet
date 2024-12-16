@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 
 class UAV_HSI_Crop_dataset(Dataset):
-    def __init__(self, base_dir, list_dir, split="train", transform=None):
+    def __init__(self, base_dir, list_dir=None, split="train", transform=None):
         self.transform = transform  # using transform in torch!
         self.split = split
         self.data_dir = base_dir
