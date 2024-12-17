@@ -40,28 +40,34 @@ def inference(args, model, test_save_path=None):
         )
         metric_list += np.array(metric_i)
         logging.info(
-            "idx %s case %s mean_dice %s mean_hd95 %s",
+            "idx %s case %s mean_dice %s mean_hd95 %s mean_jaccard %s",
             i_batch,
             case_name,
             np.mean(metric_i, axis=0)[0],
             np.mean(metric_i, axis=0)[1],
+            np.mean(metric_i, axis=0)[2],
         )
+
     metric_list = metric_list / len(db_test)
     for i in range(1, args.num_classes):
         logging.info(
-            "Mean class %d mean_dice %f mean_hd95 %f",
+            "Mean class %d mean_dice %f mean_hd95 %f mean_jaccard %s",
             i,
             metric_list[i - 1][0],
             metric_list[i - 1][1],
+            metric_list[i - 1][2],
         )
     performance = np.mean(metric_list, axis=0)[0]
     mean_hd95 = np.mean(metric_list, axis=0)[1]
+    mean_jaccard = np.mean(metric_list, axis=0)[2]
     logging.info(
-        "Testing performance in best val model: mean_dice : %f mean_hd95 : %f",
+        "Testing performance in best val model: mean_dice : %f mean_hd95 : %f mean_jaccard : %s",
         performance,
         mean_hd95,
+        mean_jaccard,
     )
-    return "Testing Finished!"
+    print("Testing Finished!")
+    return None
 
 
 def main():
