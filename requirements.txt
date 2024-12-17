@@ -10,3 +10,5 @@ SimpleITK
 scipy
 h5py
 chardet
+opencv-contrib-python
+opencv-python

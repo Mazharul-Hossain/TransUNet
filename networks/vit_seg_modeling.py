@@ -441,9 +441,9 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x):
         if x.size()[1] == 1:
-            print("forward before", x.size())
+            # print("forward before", x.size())
             x = x.repeat(1, 3, 1, 1)
-            print("forward after", x.size())
+            # print("forward after", x.size())
             
         # x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
         x, _, features = self.transformer(x)

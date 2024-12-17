@@ -22,7 +22,7 @@ def inference(args, model, test_save_path=None):
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
-        h, w = sampled_batch["image"].size()[2:]
+        # h, w = sampled_batch["image"].size()[-2:]
         image, label, case_name = (
             sampled_batch["image"],
             sampled_batch["label"],

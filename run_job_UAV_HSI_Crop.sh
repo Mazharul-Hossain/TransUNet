@@ -57,8 +57,8 @@ fi
 # source /home/${USER}/.bashrc
 # conda activate trans_u_env
 
-# Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96
+# # Run the classification task using the dataset and subset variables
+# python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96
 
 # Evaluate the trained model
 python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --is_savenii
