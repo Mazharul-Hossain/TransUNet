@@ -441,7 +441,9 @@ class VisionTransformer(nn.Module):
 
     def forward(self, x):
         if x.size()[1] == 1:
+            print("forward before", x.size())
             x = x.repeat(1, 3, 1, 1)
+            print("forward after", x.size())
             
         # x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
         x, _, features = self.transformer(x)
@@ -485,7 +487,7 @@ class VisionTransformer(nn.Module):
                     _, posemb_grid = posemb[:, :1], posemb[0, 1:]
                 gs_old = int(np.sqrt(len(posemb_grid)))
                 gs_new = int(np.sqrt(ntok_new))
-                print("load_pretrained: grid-size from %s to %s", gs_old, gs_new)
+                print("load_pretrained: grid-size from", gs_old, "to", gs_new)
                 
                 posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
                 zoom = (gs_new / gs_old, gs_new / gs_old, 1)

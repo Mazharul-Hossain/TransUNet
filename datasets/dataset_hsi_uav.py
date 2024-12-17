@@ -1,7 +1,9 @@
 import os
-import h5py
-import glob
+
+# import h5py
+# import glob
 import numpy as np
+import cv2
 from torch.utils.data import Dataset
 
 
@@ -32,6 +34,14 @@ class UAV_HSI_Crop_dataset(Dataset):
     def __getitem__(self, idx):
         (fname, fin) = self.sample_list[idx]
         image = np.load(fin)
+
+        print(image.dtype, image.shape, image.max(), image.min())
+        image = np.asarray(255 * image[..., (49, 89, 180)], dtype="uint8")
+        print(image.dtype, image.shape, image.max(), image.min())
+
+        # Convert the image to grayscale
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = np.asarray(image, dtype="float32") / 255
 
         fin = os.path.join(self.all_slices, "gt", fname)
         label = np.load(fin)
