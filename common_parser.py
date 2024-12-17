@@ -69,6 +69,9 @@ def get_common_parser(state="training"):
     parser.add_argument(
         "--seed", type=int, default=1234, help="random seed, default is 1234"
     )
+    parser.add_argument(
+        "--snapshot_dir", type=str, default="/project/mhssain9", help="training location"
+    )
 
     if state == "training":
         parser.add_argument(

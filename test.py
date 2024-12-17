@@ -89,7 +89,7 @@ def main():
 
     # name the same snapshot defined in train script!
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
-    snapshot_path = "/project/mhssain9/model/{}/{}".format(args.exp, "TU")
+    snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
     snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
@@ -141,7 +141,7 @@ def main():
     net.load_state_dict(torch.load(snapshot))
     snapshot_name = snapshot_path.split("/")[-1]
 
-    log_folder = "./test_log/test_log_" + args.exp
+    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
     os.makedirs(log_folder, exist_ok=True)
     logging.basicConfig(
         filename=log_folder + "/" + snapshot_name + ".txt",
@@ -154,7 +154,7 @@ def main():
     logging.info(snapshot_name)
 
     if args.is_savenii:
-        args.test_save_dir = "/project/mhssain9/predictions"
+        args.test_save_dir = os.path.join(args.snapshot_dir, "predictions")
         test_save_path = os.path.join(args.test_save_dir, args.exp, snapshot_name)
         os.makedirs(test_save_path, exist_ok=True)
     else:

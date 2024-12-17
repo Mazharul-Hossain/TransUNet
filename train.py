@@ -31,7 +31,7 @@ if __name__ == "__main__":
     args.list_dir = dataset_config[dataset_name]["list_dir"]
     args.is_pretrain = True
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
-    snapshot_path = f"/project/mhssain9/model/{args.exp}/TU"
+    snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
     snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
+        
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
