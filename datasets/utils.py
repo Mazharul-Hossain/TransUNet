@@ -38,6 +38,7 @@ class RandomGenerator(object):
 
         if random.random() > 0.5:
             image, label = random_rot_flip(image, label)
+
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
         
@@ -64,8 +65,15 @@ class RandomGenerator(object):
             image.shape[-1] == self.output_size[1]
         )
         image = torch.from_numpy(image.astype(np.float32))
+        image[image < 0] = 0
+        image[image > 1] = 1
+
         if len(image.shape) == 2:
             image = image.unsqueeze(0)
+        
+        else:
+            assert (image.shape[-3] == 3), f"Oh no! This assertion failed! {image.shape}"
+
         label = torch.from_numpy(label.astype(np.uint8))
 
         sample["image"], sample["label"] = image, label

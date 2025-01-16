@@ -54,6 +54,9 @@ class UAV_HSI_Crop_dataset(Dataset):
         # # =====================================================================
         # Convert the image to RGB
         image = image[..., (49, 89, 180)]
+        image[image < 0] = 0
+        image[image > 1] = 1
+
         image = np.rollaxis(image, -1, 0)
         # =====================================================================
 
