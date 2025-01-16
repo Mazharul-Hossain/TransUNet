@@ -230,7 +230,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_iterations = max_epochs * len(train_loader)
 
     best_performance = 0.0
-    iterator = tqdm(range(1, max_epoch), ncols=70)
+    iterator = tqdm(range(1, max_epochs), ncols=70)
     for epoch_num in iterator:
         loss_list, loss_ce_list, loss_dice_list = [], [], []
 

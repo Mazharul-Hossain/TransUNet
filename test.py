@@ -74,12 +74,23 @@ def main():
     parser = get_common_parser(state="test")
     args = parser.parse_args()
 
+    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
+    os.makedirs(log_folder, exist_ok=True)
+    logging.basicConfig(
+        filename=log_folder + "/" + snapshot_name + ".txt",
+        level=logging.INFO,
+        format="[%(asctime)s.%(msecs)03d] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
     if not args.deterministic:
         cudnn.benchmark = True
         cudnn.deterministic = False
     else:
         cudnn.benchmark = False
         cudnn.deterministic = True
+
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -95,6 +106,8 @@ def main():
 
     # name the same snapshot defined in train script!
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
+    logging.info(str(args))
+    
     snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
@@ -144,19 +157,9 @@ def main():
     snapshot = os.path.join(snapshot_path, "best_model.pth")
     if not os.path.exists(snapshot):
         snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
+    
     net.load_state_dict(torch.load(snapshot))
     snapshot_name = snapshot_path.split("/")[-1]
-
-    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
-    os.makedirs(log_folder, exist_ok=True)
-    logging.basicConfig(
-        filename=log_folder + "/" + snapshot_name + ".txt",
-        level=logging.INFO,
-        format="[%(asctime)s.%(msecs)03d] %(message)s",
-        datefmt="%H:%M:%S",
-    )
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-    logging.info(str(args))
     logging.info(snapshot_name)
 
     if args.is_savenii:
@@ -165,6 +168,7 @@ def main():
         os.makedirs(test_save_path, exist_ok=True)
     else:
         test_save_path = None
+    
     inference(args, net, test_save_path)
 
 
