@@ -130,6 +130,21 @@ def main():
         snapshot_path + "_s" + str(args.seed) if args.seed != 1234 else snapshot_path
     )
 
+    snapshot_name = snapshot_path.split("/")[-1]
+
+    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
+    os.makedirs(log_folder, exist_ok=True)
+    logging.basicConfig(
+        filename=log_folder + "/" + snapshot_name + ".txt",
+        level=logging.INFO,
+        format="[%(asctime)s.%(msecs)03d] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+    logging.info(snapshot_name)
+    logging.info(str(args))
+
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
@@ -147,22 +162,8 @@ def main():
     if not os.path.exists(snapshot):
         snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
     
+    logging.info("Loading model weight: %s", snapshot)
     net.load_state_dict(torch.load(snapshot))
-
-    snapshot_name = snapshot_path.split("/")[-1]
-
-    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
-    os.makedirs(log_folder, exist_ok=True)
-    logging.basicConfig(
-        filename=log_folder + "/" + snapshot_name + ".txt",
-        level=logging.INFO,
-        format="[%(asctime)s.%(msecs)03d] %(message)s",
-        datefmt="%H:%M:%S",
-    )
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
-    logging.info(snapshot_name)
-    logging.info(str(args))
 
     if args.is_savenii:
         args.test_save_dir = os.path.join(args.snapshot_dir, "predictions")
