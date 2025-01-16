@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -39,10 +40,17 @@ class RandomGenerator(object):
             image, label = random_rot_flip(image, label)
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
+        
         x, y = image.shape[-2:]
+        logging.info(
+            "Random Generator zoom: %s, %s, %s, %s",
+            image.shape,
+            x,
+            y,
+            self.output_size,
+        )
 
         if x != self.output_size[0] or y != self.output_size[1]:
-            print(image.shape, x, y, self.output_size)
 
             zoom_factor = (self.output_size[0] / x, self.output_size[1] / y)
             label = zoom(label, zoom_factor, order=0)
@@ -60,5 +68,5 @@ class RandomGenerator(object):
             image = image.unsqueeze(0)
         label = torch.from_numpy(label.astype(np.uint8))
 
-        sample = {"image": image, "label": label}
+        sample["image"], sample["label"] = image, label
         return sample

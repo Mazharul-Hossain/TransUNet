@@ -1,9 +1,6 @@
 import os
-
-# import h5py
-# import glob
+import logging
 import numpy as np
-import cv2
 from torch.utils.data import Dataset
 
 
@@ -34,9 +31,16 @@ class UAV_HSI_Crop_dataset(Dataset):
     def __getitem__(self, idx):
         (fname, fin) = self.sample_list[idx]
         image = np.load(fin)
-        
-        if self.split.find("train") == -1:
-            print(image.dtype, image.shape, image.max(), image.min())
+
+        if self.split.find("train") != -1:
+            logging.info(
+                "%s %s %s %s %s",
+                idx,
+                image.dtype,
+                image.shape,
+                image.max(),
+                image.min(),
+            )
 
         # # =====================================================================
         # # Convert the image to grayscale
@@ -59,6 +63,16 @@ class UAV_HSI_Crop_dataset(Dataset):
         sample = {"image": image, "label": label}
         if self.transform:
             sample = self.transform(sample)
+
+        if self.split.find("train") != -1:
+            logging.info(
+                "%s %s %s %s %s",
+                idx,
+                sample["image"].dtype,
+                sample["image"].shape,
+                sample["image"].max(),
+                sample["image"].min(),
+            )
 
         sample["case_name"] = str(fname)
         return sample
