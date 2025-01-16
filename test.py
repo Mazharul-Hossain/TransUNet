@@ -74,16 +74,6 @@ def main():
     parser = get_common_parser(state="test")
     args = parser.parse_args()
 
-    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
-    os.makedirs(log_folder, exist_ok=True)
-    logging.basicConfig(
-        filename=log_folder + "/" + snapshot_name + ".txt",
-        level=logging.INFO,
-        format="[%(asctime)s.%(msecs)03d] %(message)s",
-        datefmt="%H:%M:%S",
-    )
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
     if not args.deterministic:
         cudnn.benchmark = True
         cudnn.deterministic = False
@@ -106,8 +96,7 @@ def main():
 
     # name the same snapshot defined in train script!
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
-    logging.info(str(args))
-    
+
     snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
     snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
     snapshot_path += "_" + args.vit_name
@@ -159,8 +148,21 @@ def main():
         snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
     
     net.load_state_dict(torch.load(snapshot))
+
     snapshot_name = snapshot_path.split("/")[-1]
+
+    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
+    os.makedirs(log_folder, exist_ok=True)
+    logging.basicConfig(
+        filename=log_folder + "/" + snapshot_name + ".txt",
+        level=logging.INFO,
+        format="[%(asctime)s.%(msecs)03d] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
     logging.info(snapshot_name)
+    logging.info(str(args))
 
     if args.is_savenii:
         args.test_save_dir = os.path.join(args.snapshot_dir, "predictions")
