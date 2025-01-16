@@ -40,16 +40,17 @@ class RandomGenerator(object):
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
         x, y = image.shape[-2:]
-        
+
         if x != self.output_size[0] or y != self.output_size[1]:
-            image = zoom(
-                image,
-                (self.output_size[0] / x, self.output_size[1] / y),
-                order=self.order,
-            )
-            label = zoom(
-                label, (self.output_size[0] / x, self.output_size[1] / y), order=0
-            )
+            print(image.shape, x, y, self.output_size)
+
+            zoom_factor = (self.output_size[0] / x, self.output_size[1] / y)
+            label = zoom(label, zoom_factor, order=0)
+
+            if len(image.shape) > 2:
+                zoom_factor = (1, self.output_size[0] / x, self.output_size[1] / y)
+
+            image = zoom(image, zoom_factor, order=self.order)
 
         assert (image.shape[-2] == self.output_size[0]) and (
             image.shape[-1] == self.output_size[1]
