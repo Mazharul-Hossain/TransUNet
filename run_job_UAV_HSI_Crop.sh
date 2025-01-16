@@ -39,6 +39,7 @@ MODEL_NAME=R50+ViT-B_16
 DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
+SNAPSHOT_DIR="/project/mhssain9/rgb_test_02"
 
 # Download the pre-trained checkpoint.
 if [[ ! -d "$CHECKPOINT_DIR" ]]; then
@@ -57,8 +58,10 @@ fi
 # source /home/${USER}/.bashrc
 # conda activate trans_u_env
 
+echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535 --debug"
+
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir "/project/mhssain9/rgb_test_01"
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR
 
 # Evaluate the trained model
-python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir "/project/mhssain9/rgb_test_01" --is_savenii
+python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --is_savenii

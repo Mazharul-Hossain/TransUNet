@@ -34,6 +34,9 @@ class UAV_HSI_Crop_dataset(Dataset):
     def __getitem__(self, idx):
         (fname, fin) = self.sample_list[idx]
         image = np.load(fin)
+        
+        if self.split.find("train") == -1:
+            print(image.dtype, image.shape, image.max(), image.min())
 
         # # =====================================================================
         # # Convert the image to grayscale

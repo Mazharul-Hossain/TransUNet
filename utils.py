@@ -48,7 +48,7 @@ class DiceLoss(nn.Module):
         return loss / self.n_classes
 
 
-def calculate_metric_percase(pred, gt):
+def calculate_metric_percase(pred: np.array, gt: np.array) -> tuple:
     pred[pred > 0] = 1
     gt[gt > 0] = 1
 
@@ -56,12 +56,12 @@ def calculate_metric_percase(pred, gt):
         dice = metric.binary.dc(pred, gt)
         hd95 = metric.binary.hd95(pred, gt)
         jaccard = metric.binary.jc(pred, gt)
-        return dice, hd95, jaccard
+        return (dice, hd95, jaccard)
 
     if pred.sum() > 0 and gt.sum() == 0:
-        return 1, 0
+        return (1, 0, 1)
 
-    return 0, 0
+    return (0, 0, 0)
 
 
 def test_single_volume(
