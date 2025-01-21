@@ -32,15 +32,15 @@ class UAV_HSI_Crop_dataset(Dataset):
         (fname, fin) = self.sample_list[idx]
         image = np.load(fin)
 
-        if self.split.find("train") != -1:
-            logging.info(
-                "%s %s %s %s %s",
-                idx,
-                image.dtype,
-                image.shape,
-                image.max(),
-                image.min(),
-            )
+        # if self.split.find("train") != -1:
+        #     logging.info(
+        #         "%s %s %s %s %s",
+        #         idx,
+        #         image.dtype,
+        #         image.shape,
+        #         image.max(),
+        #         image.min(),
+        #     )
 
         # # =====================================================================
         # # Convert the image to grayscale
@@ -57,9 +57,7 @@ class UAV_HSI_Crop_dataset(Dataset):
         image[image < 0] = 0
         image[image > 1] = 1
 
-        logging.info(
-            "Before roll axis: %s %s",
-            idx, image.shape)
+        # logging.info("Before roll axis: %s %s", idx, image.shape)
         image = np.rollaxis(image, -1)
         # =====================================================================
 
@@ -67,15 +65,15 @@ class UAV_HSI_Crop_dataset(Dataset):
         label = np.load(fin)
 
         sample = {"image": image, "label": label, "idx": idx}
-        if self.split.find("train") != -1:
-            logging.info(
-                "UAV_HSI_Crop Dataset generator: %s %s %s %s %s",
-                idx,
-                sample["image"].dtype,
-                sample["image"].shape,
-                sample["image"].max(),
-                sample["image"].min(),
-            )
+        # if self.split.find("train") != -1:
+        #     logging.info(
+        #         "UAV_HSI_Crop Dataset generator: %s %s %s %s %s",
+        #         idx,
+        #         sample["image"].dtype,
+        #         sample["image"].shape,
+        #         sample["image"].max(),
+        #         sample["image"].min(),
+        #     )
 
         if self.transform:
             sample = self.transform(sample)

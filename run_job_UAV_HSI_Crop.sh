@@ -40,6 +40,7 @@ DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
 SNAPSHOT_DIR="/project/mhssain9/rgb_test_02"
+# rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
 if [[ ! -d "$CHECKPOINT_DIR" ]]; then
@@ -58,6 +59,7 @@ fi
 # source /home/${USER}/.bashrc
 # conda activate trans_u_env
 
+mkdir -p $SNAPSHOT_DIR
 echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535 --debug"
 
 # Run the classification task using the dataset and subset variables

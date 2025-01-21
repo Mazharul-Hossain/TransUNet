@@ -16,7 +16,7 @@ def random_rot_flip(image: np.ndarray, label: np.ndarray):
 
         return image, label
 
-    def random_lip(image: np.ndarray, label: np.ndarray):
+    def random_flip(image: np.ndarray, label: np.ndarray):
         axis = np.random.randint(0, 2)
 
         image = np.flip(image, axis=axis).copy()
@@ -25,7 +25,7 @@ def random_rot_flip(image: np.ndarray, label: np.ndarray):
         return image, label
 
     image, label = random_rotation90(image, label)
-    image, label = random_lip(image, label)
+    image, label = random_flip(image, label)
 
     return image, label
 
@@ -48,25 +48,25 @@ class RandomGenerator(object):
 
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
-        logging.info("%s Start Random Generator: %s", sample["idx"], image.shape)
+        # logging.info("%s Start Random Generator: %s", sample["idx"], image.shape)
 
         if random.random() > 0.5:
             image, label = random_rot_flip(image, label)
-            logging.info("%s random_rot_flip: %s", sample["idx"], image.shape)
+            # logging.info("%s random_rot_flip: %s", sample["idx"], image.shape)
 
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
             logging.info("%s random_rotate: %s", sample["idx"], image.shape)
 
         x, y = image.shape[-2:]
-        logging.info(
-            "%s Random Generator zoom: %s, %s, %s, %s",
-            sample["idx"],
-            image.shape,
-            x,
-            y,
-            self.output_size,
-        )
+        # logging.info(
+        #     "%s Random Generator zoom: %s, %s, %s, %s",
+        #     sample["idx"],
+        #     image.shape,
+        #     x,
+        #     y,
+        #     self.output_size,
+        # )
 
         if x != self.output_size[0] or y != self.output_size[1]:
 
@@ -81,10 +81,10 @@ class RandomGenerator(object):
         assert (image.shape[-2] == self.output_size[0]) and (
             image.shape[-1] == self.output_size[1]
         )
-        image = torch.from_numpy(image.astype(np.float32))
         image[image < 0] = 0
         image[image > 1] = 1
-
+        image = torch.from_numpy(image.astype(np.float32))
+        
         if len(image.shape) == 2:
             image = image.unsqueeze(0)
 

@@ -248,9 +248,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
             optimizer.step()
 
             iter_num = iter_num + 1
-            loss_list.append(loss)
-            loss_ce_list.append(loss_ce)
-            loss_dice_list.append(loss_dice)
+            loss_list.append(float(loss.item()))
+            loss_ce_list.append(float(loss_ce.item()))
+            loss_dice_list.append(float(loss_dice.item()))
 
             logging.info(
                 "iteration %d : loss : %f, loss_ce: %f",
