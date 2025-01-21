@@ -57,25 +57,28 @@ class UAV_HSI_Crop_dataset(Dataset):
         image[image < 0] = 0
         image[image > 1] = 1
 
-        image = np.rollaxis(image, -1, 0)
+        logging.info(
+            "Before roll axis: %s %s",
+            idx, image.shape)
+        image = np.rollaxis(image, -1)
         # =====================================================================
 
         fin = os.path.join(self.all_slices, "gt", fname)
         label = np.load(fin)
 
         sample = {"image": image, "label": label}
-        if self.transform:
-            sample = self.transform(sample)
-
         if self.split.find("train") != -1:
             logging.info(
-                "%s %s %s %s %s",
+                "UAV_HSI_Crop Dataset generator: %s %s %s %s %s",
                 idx,
                 sample["image"].dtype,
                 sample["image"].shape,
                 sample["image"].max(),
                 sample["image"].min(),
             )
+
+        if self.transform:
+            sample = self.transform(sample)
 
         sample["case_name"] = str(fname)
         return sample

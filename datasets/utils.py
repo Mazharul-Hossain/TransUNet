@@ -35,13 +35,16 @@ class RandomGenerator(object):
 
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
+        logging.info("Start Random Generator: %s", image.shape)
 
         if random.random() > 0.5:
             image, label = random_rot_flip(image, label)
+            logging.info("random_rot_flip: %s", image.shape)
 
-        elif random.random() > 0.5:
+        if random.random() > 0.5:
             image, label = random_rotate(image, label)
-        
+            logging.info("random_rotate: %s", image.shape)
+
         x, y = image.shape[-2:]
         logging.info(
             "Random Generator zoom: %s, %s, %s, %s",
@@ -70,9 +73,9 @@ class RandomGenerator(object):
 
         if len(image.shape) == 2:
             image = image.unsqueeze(0)
-        
+
         else:
-            assert (image.shape[-3] == 3), f"Oh no! This assertion failed! {image.shape}"
+            assert image.shape[-3] == 3, f"Oh no! This assertion failed! {image.shape}"
 
         label = torch.from_numpy(label.astype(np.uint8))
 
