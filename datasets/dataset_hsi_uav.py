@@ -66,7 +66,7 @@ class UAV_HSI_Crop_dataset(Dataset):
         fin = os.path.join(self.all_slices, "gt", fname)
         label = np.load(fin)
 
-        sample = {"image": image, "label": label}
+        sample = {"image": image, "label": label, "idx": idx}
         if self.split.find("train") != -1:
             logging.info(
                 "UAV_HSI_Crop Dataset generator: %s %s %s %s %s",

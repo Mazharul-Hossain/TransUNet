@@ -7,13 +7,26 @@ from scipy import ndimage
 from scipy.ndimage.interpolation import zoom
 
 
-def random_rot_flip(image, label):
-    k = np.random.randint(0, 4)
-    image = np.rot90(image, k)
-    label = np.rot90(label, k)
-    axis = np.random.randint(0, 2)
-    image = np.flip(image, axis=axis).copy()
-    label = np.flip(label, axis=axis).copy()
+def random_rot_flip(image: np.ndarray, label: np.ndarray):
+    def random_rotation90(image: np.ndarray, label: np.ndarray):
+        k = np.random.randint(0, 4)
+
+        image = np.rot90(image, k, axes=(1, 2))
+        label = np.rot90(label, k)
+
+        return image, label
+
+    def random_lip(image: np.ndarray, label: np.ndarray):
+        axis = np.random.randint(0, 2)
+
+        image = np.flip(image, axis=axis).copy()
+        label = np.flip(label, axis=axis).copy()
+
+        return image, label
+
+    image, label = random_rotation90(image, label)
+    image, label = random_lip(image, label)
+
     return image, label
 
 
@@ -35,19 +48,20 @@ class RandomGenerator(object):
 
     def __call__(self, sample):
         image, label = sample["image"], sample["label"]
-        logging.info("Start Random Generator: %s", image.shape)
+        logging.info("%s Start Random Generator: %s", sample["idx"], image.shape)
 
         if random.random() > 0.5:
             image, label = random_rot_flip(image, label)
-            logging.info("random_rot_flip: %s", image.shape)
+            logging.info("%s random_rot_flip: %s", sample["idx"], image.shape)
 
-        if random.random() > 0.5:
+        elif random.random() > 0.5:
             image, label = random_rotate(image, label)
-            logging.info("random_rotate: %s", image.shape)
+            logging.info("%s random_rotate: %s", sample["idx"], image.shape)
 
         x, y = image.shape[-2:]
         logging.info(
-            "Random Generator zoom: %s, %s, %s, %s",
+            "%s Random Generator zoom: %s, %s, %s, %s",
+            sample["idx"],
             image.shape,
             x,
             y,
