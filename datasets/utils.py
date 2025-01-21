@@ -56,7 +56,7 @@ class RandomGenerator(object):
 
         elif random.random() > 0.5:
             image, label = random_rotate(image, label)
-            logging.info("%s random_rotate: %s", sample["idx"], image.shape)
+            # logging.info("%s random_rotate: %s", sample["idx"], image.shape)
 
         x, y = image.shape[-2:]
         # logging.info(

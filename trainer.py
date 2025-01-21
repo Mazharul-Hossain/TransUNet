@@ -314,6 +314,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 best_performance = performance
 
                 save_best = os.path.join(snapshot_path, "best_model.pth")
+                logging.info("Saving Best model | iteration %d %s", iter_num, save_best)
                 torch.save(model.state_dict(), save_best)
 
                 logging.info(
@@ -331,7 +332,18 @@ def trainer_uav_hsi(args, model, snapshot_path):
             )
             model.train()
 
+        
+        if epoch_num >= max_epochs - 1:
+            save_mode_path = os.path.join(
+                snapshot_path, "epoch_" + str(epoch_num) + ".pth"
+            )
+            logging.info("Saving Final model | epoch: %d %s", epoch_num, save_mode_path)
+            torch.save(model.state_dict(), save_mode_path)
+            logging.info("save model to %s", save_mode_path)
+            
+
         if iter_num >= max_iterations:
+            iterator.close()
             break
 
     writer.close()

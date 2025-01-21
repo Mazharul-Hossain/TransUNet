@@ -58,7 +58,7 @@ def get_common_parser(state="training"):
         help="vit_patches_size, default is 16",
     )
     parser.add_argument(
-        "--max_epochs", type=int, default=150, help="maximum epoch number to train"
+        "--max_epochs", type=int, default=300, help="maximum epoch number to train"
     )
     parser.add_argument(
         "--max_iterations",
