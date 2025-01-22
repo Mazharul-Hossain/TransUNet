@@ -13,13 +13,20 @@ from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 from common_parser import get_common_parser, dataset_config
 
 
-def inference(args, model, test_save_path=None):
-    db_test = args.Dataset(
-        base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
-    )
-    testloader = DataLoader(
-        db_test, batch_size=1, shuffle=False, num_workers=args.num_workers
-    )
+def inference(args, model, test_save_path=None, data_type: str = "test"):
+    if data_type == "val":
+        db_test = args.Dataset(base_dir=args.root_path, split="val")
+        testloader = DataLoader(
+            db_test, batch_size=1, shuffle=False, num_workers=args.num_workers
+        )
+
+    else:
+        db_test = args.Dataset(
+            base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
+        )
+        testloader = DataLoader(
+            db_test, batch_size=1, shuffle=False, num_workers=args.num_workers
+        )
     logging.info("%s test iterations per epoch", len(testloader))
 
     is_rgb = False
@@ -59,7 +66,7 @@ def inference(args, model, test_save_path=None):
     metric_list = metric_list / len(db_test)
     for i in range(1, args.num_classes):
         logging.info(
-            "Mean class %d mean_dice %f mean_hd95 %f mean_jaccard %s",
+            "Mean class %d mean_dice %s mean_hd95 %s mean_jaccard %s",
             i,
             metric_list[i - 1][0],
             metric_list[i - 1][1],
@@ -69,7 +76,7 @@ def inference(args, model, test_save_path=None):
     mean_hd95 = np.mean(metric_list, axis=0)[1]
     mean_jaccard = np.mean(metric_list, axis=0)[2]
     logging.info(
-        "Testing performance in best val model: mean_dice : %f mean_hd95 : %f mean_jaccard : %s",
+        "Testing performance in best val model: mean_dice : %s mean_hd95 : %s mean_jaccard : %s",
         performance,
         mean_hd95,
         mean_jaccard,
@@ -185,6 +192,10 @@ def main():
     else:
         test_save_path = None
 
+    logging.info("-> Running Evaluation on Validation dataset to ensure correct model picked.")
+    inference(args, net, data_type="val")
+
+    logging.info("-> Running Evaluation on Test dataset.")
     inference(args, net, test_save_path)
 
 

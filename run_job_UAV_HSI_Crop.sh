@@ -11,9 +11,10 @@
 #SBATCH --partition=bigTiger                 # Partition to submit to (adjust based on availability)
 
 # ########################################
+# cd /home/mhssain9/TransUNet/
 # conda activate trans_u_env
 # git reset --hard
-# git pull origin master
+# git pull
 # chmod +x run_job_UAV_HSI_Crop.sh
 # sbatch run_job_UAV_HSI_Crop.sh
 # squeue -p bigTiger -u $USER -O jobid,partition,username,state,reasonlist,gres
@@ -61,7 +62,7 @@ nvidia-smi
 
 mkdir -p $SNAPSHOT_DIR
 echo "########################################################################"
-echo "Test with selected channels as BGR (49, 89, 180)"
+echo "#\n# Test with selected channels as BGR (49, 89, 180)\n#"
 echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 

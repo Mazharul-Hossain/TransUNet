@@ -70,10 +70,13 @@ def get_common_parser(state="training"):
         "--seed", type=int, default=1234, help="random seed, default is 1234"
     )
     parser.add_argument(
-        "--snapshot_dir", type=str, default="/project/mhssain9", help="training location"
+        "--snapshot_dir",
+        type=str,
+        default="/project/mhssain9",
+        help="training location",
     )
     parser.add_argument(
-        "--num_workers,
+        "--num_workers",
         type=int,
         default=16,
         help="num of workers loading data",
