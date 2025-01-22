@@ -17,7 +17,9 @@ def inference(args, model, test_save_path=None):
     db_test = args.Dataset(
         base_dir=args.volume_path, split="test_vol", list_dir=args.list_dir
     )
-    testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
+    testloader = DataLoader(
+        db_test, batch_size=1, shuffle=False, num_workers=args.num_workers
+    )
     logging.info("%s test iterations per epoch", len(testloader))
 
     is_rgb = False

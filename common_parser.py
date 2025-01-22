@@ -72,6 +72,12 @@ def get_common_parser(state="training"):
     parser.add_argument(
         "--snapshot_dir", type=str, default="/project/mhssain9", help="training location"
     )
+    parser.add_argument(
+        "--num_workers,
+        type=int,
+        default=16,
+        help="num of workers loading data",
+    )
 
     if state == "training":
         parser.add_argument(

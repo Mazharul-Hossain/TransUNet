@@ -39,7 +39,7 @@ MODEL_NAME=R50+ViT-B_16
 DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
-SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_01"
+SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_02"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -60,15 +60,19 @@ nvidia-smi
 # conda activate trans_u_env
 
 mkdir -p $SNAPSHOT_DIR
+echo "########################################################################"
+echo "Test with selected channels as BGR (49, 89, 180)"
+echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 
-
+echo "########################################################################"
 echo "To check the experiment results:" 
 echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535"
-# ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu
+echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
+echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-# python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR
 
 # Evaluate the trained model
 python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --is_savenii
