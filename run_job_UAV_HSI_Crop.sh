@@ -39,7 +39,7 @@ MODEL_NAME=R50+ViT-B_16
 DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
-SNAPSHOT_DIR="/project/mhssain9/rgb_test_02"
+SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_01"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -60,6 +60,10 @@ nvidia-smi
 # conda activate trans_u_env
 
 mkdir -p $SNAPSHOT_DIR
+echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
+echo "rm -rf '$SNAPSHOT_DIR'" 
+
+echo "To check the experiment results:" 
 echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535"
 # ssh -N -L 8080:localhost:65535 mhssain9@itiger.memphis.edu
 

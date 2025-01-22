@@ -242,6 +242,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
     logging.info("%s val iterations per epoch", len(val_loader))
     # logging.info("{} test iterations per epoch".format(len(testloader)))
 
+    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
     iter_num = 0
     # max_epoch = max_iterations // len(train_loader) + 1
     max_epochs = args.max_epochs
@@ -254,10 +256,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
         for _, sampled_batch in enumerate(train_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
-            if torch.cuda.is_available():
-                volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
-            else:
-                volume_batch, label_batch = volume_batch.cpu(), label_batch.cpu()
+            volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
 
             outputs = model(volume_batch)
 
@@ -300,10 +299,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
             metric_list = 0.0
             for _, sampled_batch in enumerate(val_loader):
                 image, label = sampled_batch["image"], sampled_batch["label"]
-                if torch.cuda.is_available():
-                    image, label = image.cuda(), label.cuda()
-                else:
-                    image, label = image.cpu(), label.cpu()
+                image, label = image.to(dev), label.to(dev)
 
                 outputs = model(image)
                 image_write_helper(image, label, outputs, epoch_num, prefix="val")
@@ -314,6 +310,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                     model,
                     classes=num_classes,
                     patch_size=[args.img_size, args.img_size],
+                    is_rgb=True,
                 )
                 metric_list += np.array(metric_i)
 

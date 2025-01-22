@@ -73,6 +73,7 @@ def test_single_volume(
     test_save_path=None,
     case=None,
     z_spacing=1,
+    is_rgb=False,
 ):
     if patch_size is None:
         patch_size = [256, 256]
@@ -81,7 +82,7 @@ def test_single_volume(
         image.squeeze(0).cpu().detach().numpy(),
         label.squeeze(0).cpu().detach().numpy(),
     )
-    if len(image.shape) == 3:
+    if len(image.shape) == 3 and not is_rgb:
         prediction = np.zeros_like(label)
         for ind in range(image.shape[0]):
             im_slice = image[ind, :, :]
