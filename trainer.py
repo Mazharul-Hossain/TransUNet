@@ -14,6 +14,10 @@ from tqdm import tqdm
 from utils import DiceLoss, test_single_volume
 
 
+"""TensorBoardX lets you watch Tensors Flow in PyTorch without Tensorflow
+https://github.com/lanpa/tensorboardX/
+"""
+
 def trainer_acdc(args, model, snapshot_path):
     from datasets import ACDC_dataset, RandomGenerator
 
@@ -191,6 +195,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
+    
+    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.train()
 
     optimizer = optim.SGD(
@@ -236,7 +242,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
         for i_batch, sampled_batch in enumerate(train_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
-            volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
             outputs = model(volume_batch)
 
             loss_ce = ce_loss(outputs, label_batch[:].long())
@@ -278,6 +284,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
             metric_list = 0.0
             for i_batch, sampled_batch in enumerate(val_loader):
                 image, label = sampled_batch["image"], sampled_batch["label"]
+                image, label = image.to(dev), label.to(dev)
 
                 outputs =  model(image)
                 image_write_helper(image, label, outputs, epoch_num, prefix="val")
@@ -346,6 +353,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
             iterator.close()
             break
 
+    # export scalar data to JSON for external processing
+    writer.export_scalars_to_json("./all_scalars.json")
     writer.close()
     logging.info("Training Finished!")
 

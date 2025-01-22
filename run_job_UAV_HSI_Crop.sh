@@ -60,7 +60,8 @@ fi
 # conda activate trans_u_env
 
 mkdir -p $SNAPSHOT_DIR
-echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535 --debug"
+echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535
+# ssh -N -L 8080:localhost:65535 mhssain9@itiger.memphis.edu
 
 # Run the classification task using the dataset and subset variables
 python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR

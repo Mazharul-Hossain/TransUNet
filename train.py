@@ -72,9 +72,12 @@ if __name__ == "__main__":
             int(args.img_size / args.vit_patches_size),
             int(args.img_size / args.vit_patches_size),
         )
+    
+    # =========================================================================
+    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     net = ViT_seg(
         config_vit, img_size=args.img_size, num_classes=config_vit.n_classes
-    ).cuda()
+    ).to(dev)
     net.load_from(weights=np.load(config_vit.pretrained_path))
 
     trainer = {
