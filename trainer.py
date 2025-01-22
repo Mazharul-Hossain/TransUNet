@@ -252,7 +252,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     best_performance = 0.0
     iterator = tqdm(range(1, max_epochs), ncols=70)
     for epoch_num in iterator:
-        loss_list, loss_ce_list, loss_dice_list = [], [], []
+        loss_list, loss_ce_list, loss_dc_list = [], [], []
 
         for _, sampled_batch in enumerate(train_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
@@ -271,7 +271,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
             iter_num = iter_num + 1
             loss_list.append(float(loss.item()))
             loss_ce_list.append(float(loss_ce.item()))
-            loss_dice_list.append(float(loss_dice.item()))
+            loss_dc_list.append(float(loss_dice.item()))
 
             logging.info(
                 "iteration %d : loss : %f, loss_ce: %f",
@@ -288,11 +288,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
             param_group["lr"] = lr_
 
         writer.add_scalar("info/lr", lr_, epoch_num)
-        writer.add_scalar("info/total_loss", np.asarray(loss_list).mean(), epoch_num)
+        writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
         writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
-        writer.add_scalar(
-            "info/loss_dice", np.asarray(loss_dice_list).mean(), epoch_num
-        )
+        writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
 
         if epoch_num % 20 == 0:
             model.eval()
@@ -315,23 +313,24 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 metric_list += np.array(metric_i)
 
             metric_list = metric_list / len(db_val)
+
+            performance = np.mean(metric_list, axis=0)[0]
+            writer.add_scalar("info/val_dice_mean", performance, iter_num)
+
+            mean_hd95 = np.mean(metric_list, axis=0)[1]
+            writer.add_scalar("info/val_hd95_mean", mean_hd95, iter_num)
+
             for class_i in range(num_classes - 1):
                 writer.add_scalar(
-                    f"info/val_{class_i + 1}_dice",
+                    f"info/val_dice_{class_i + 1}",
                     metric_list[class_i, 0],
                     iter_num,
                 )
                 writer.add_scalar(
-                    f"info/val_{class_i + 1}_hd95",
+                    f"info/val_hd95_{class_i + 1}",
                     metric_list[class_i, 1],
                     iter_num,
                 )
-
-            performance = np.mean(metric_list, axis=0)[0]
-
-            mean_hd95 = np.mean(metric_list, axis=0)[1]
-            writer.add_scalar("info/val_mean_dice", performance, iter_num)
-            writer.add_scalar("info/val_mean_hd95", mean_hd95, iter_num)
 
             if performance > best_performance:
                 best_performance = performance

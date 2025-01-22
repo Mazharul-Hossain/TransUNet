@@ -19,6 +19,11 @@ def inference(args, model, test_save_path=None):
     )
     testloader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
     logging.info("%s test iterations per epoch", len(testloader))
+
+    is_rgb = False
+    if args.dataset == "UAV_HSI_Crop":
+        is_rgb = True
+
     model.eval()
     metric_list = 0.0
     for i_batch, sampled_batch in tqdm(enumerate(testloader)):
@@ -37,6 +42,7 @@ def inference(args, model, test_save_path=None):
             test_save_path=test_save_path,
             case=case_name,
             z_spacing=args.z_spacing,
+            is_rgb=is_rgb,
         )
         metric_list += np.array(metric_i)
         logging.info(
@@ -111,20 +117,21 @@ def main():
         if args.max_epochs != 30
         else snapshot_path
     )
-    if (
-        dataset_name == "ACDC"
-    ):  # using max_epoch instead of iteration to control training duration
+    if dataset_name == "ACDC":
+        # using max_epoch instead of iteration to control training duration
         snapshot_path = (
             snapshot_path + "_" + str(args.max_iterations)[0:2] + "k"
             if args.max_iterations != 30000
             else snapshot_path
         )
+
     snapshot_path = snapshot_path + "_bs" + str(args.batch_size)
     snapshot_path = (
         snapshot_path + "_lr" + str(args.base_lr)
         if args.base_lr != 0.01
         else snapshot_path
     )
+
     snapshot_path = snapshot_path + "_" + str(args.img_size)
     snapshot_path = (
         snapshot_path + "_s" + str(args.seed) if args.seed != 1234 else snapshot_path
@@ -162,8 +169,10 @@ def main():
     if not os.path.exists(snapshot):
         snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs))
         if not os.path.exists(snapshot):
-            snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
-    
+            snapshot = snapshot.replace(
+                "best_model", "epoch_" + str(args.max_epochs - 1)
+            )
+
     logging.info("Loading model weight: %s", snapshot)
     net.load_state_dict(torch.load(snapshot))
 
@@ -173,7 +182,7 @@ def main():
         os.makedirs(test_save_path, exist_ok=True)
     else:
         test_save_path = None
-    
+
     inference(args, net, test_save_path)
 
 
