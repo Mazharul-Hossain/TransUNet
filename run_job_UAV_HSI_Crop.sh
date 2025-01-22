@@ -60,7 +60,7 @@ fi
 # conda activate trans_u_env
 
 mkdir -p $SNAPSHOT_DIR
-echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535
+echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535"
 # ssh -N -L 8080:localhost:65535 mhssain9@itiger.memphis.edu
 
 # Run the classification task using the dataset and subset variables
