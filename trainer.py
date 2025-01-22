@@ -196,7 +196,6 @@ def trainer_uav_hsi(args, model, snapshot_path):
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
     
-    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.train()
 
     optimizer = optim.SGD(
@@ -214,17 +213,19 @@ def trainer_uav_hsi(args, model, snapshot_path):
         local_num: int,
         prefix: str = "train",
     ) -> None:
-        image = image_batch[1, ...]
+        logging.info("image_write_helper %s %s %s", image_batch.shape, label_batch.shape, predictions.shape)
+        image = image_batch[0, ...]
         image = (image - image.min()) / (image.max() - image.min())
         writer.add_image(f"{prefix}/Image", image, local_num)
 
-        labs = label_batch[1, ...].unsqueeze(0) * 50
+        labs = label_batch[0, ...].unsqueeze(0) * 50
         writer.add_image(f"{prefix}/GroundTruth", labs, local_num)
 
         predictions = torch.argmax(
-            torch.softmax(predictions, dim=1), dim=1, keepdim=True
-        )
-        writer.add_image(f"{prefix}/Prediction", predictions[1, ...] * 50, local_num)
+            torch.softmax(predictions, dim=1), dim=1, keepdim=False
+        )        
+        logging.info("image_write_helper %s %s %s", image_batch.shape, label_batch.shape, predictions.shape)
+        writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 50, local_num)
 
     logging.info("%s iterations per epoch", len(train_loader))
     logging.info("%s val iterations per epoch", len(val_loader))
@@ -240,9 +241,13 @@ def trainer_uav_hsi(args, model, snapshot_path):
     for epoch_num in iterator:
         loss_list, loss_ce_list, loss_dice_list = [], [], []
 
-        for i_batch, sampled_batch in enumerate(train_loader):
+        for _, sampled_batch in enumerate(train_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
-            volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
+            if torch.cuda.is_available():
+                volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            else:
+                volume_batch, label_batch = volume_batch.cpu(), label_batch.cpu()                
+            
             outputs = model(volume_batch)
 
             loss_ce = ce_loss(outputs, label_batch[:].long())
@@ -282,9 +287,12 @@ def trainer_uav_hsi(args, model, snapshot_path):
         if epoch_num % 20 == 0:
             model.eval()
             metric_list = 0.0
-            for i_batch, sampled_batch in enumerate(val_loader):
+            for _, sampled_batch in enumerate(val_loader):
                 image, label = sampled_batch["image"], sampled_batch["label"]
-                image, label = image.to(dev), label.to(dev)
+                if torch.cuda.is_available():
+                    image, label = image.cuda(), label.cuda()
+                else:
+                    image, label = image.cpu(), label.cpu()
 
                 outputs =  model(image)
                 image_write_helper(image, label, outputs, epoch_num, prefix="val")

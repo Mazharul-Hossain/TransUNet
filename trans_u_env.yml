@@ -1,0 +1,15 @@
+name: trans_u_env
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.11
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=11.8
+  - tqdm
+  - 

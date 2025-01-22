@@ -52,8 +52,8 @@ if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
   mv ${MODEL_NAME}.npz ${CHECKPOINT_DIR}
 fi
 
-# nvcc -V
-# nvidia-smi
+nvcc -V
+nvidia-smi
 
 # # Activate Anaconda work environment
 # source /home/${USER}/.bashrc
