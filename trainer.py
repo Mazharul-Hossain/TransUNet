@@ -18,6 +18,7 @@ from utils import DiceLoss, test_single_volume
 https://github.com/lanpa/tensorboardX/
 """
 
+
 def trainer_acdc(args, model, snapshot_path):
     from datasets import ACDC_dataset, RandomGenerator
 
@@ -195,7 +196,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
-    
+
     model.train()
 
     optimizer = optim.SGD(
@@ -213,19 +214,29 @@ def trainer_uav_hsi(args, model, snapshot_path):
         local_num: int,
         prefix: str = "train",
     ) -> None:
-        logging.info("image_write_helper %s %s %s", image_batch.shape, label_batch.shape, predictions.shape)
+        logging.info(
+            "image_write_helper %s %s %s",
+            image_batch.shape,
+            label_batch.shape,
+            predictions.shape,
+        )
         image = image_batch[0, ...]
         image = (image - image.min()) / (image.max() - image.min())
         writer.add_image(f"{prefix}/Image", image, local_num)
 
-        labs = label_batch[0, ...].unsqueeze(0) * 50
+        labs = label_batch[0, ...].unsqueeze(0) * 7
         writer.add_image(f"{prefix}/GroundTruth", labs, local_num)
 
         predictions = torch.argmax(
-            torch.softmax(predictions, dim=1), dim=1, keepdim=False
-        )        
-        logging.info("image_write_helper %s %s %s", image_batch.shape, label_batch.shape, predictions.shape)
-        writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 50, local_num)
+            torch.softmax(predictions, dim=1), dim=1, keepdim=True
+        )
+        logging.info(
+            "image_write_helper %s %s %s",
+            image_batch.shape,
+            label_batch.shape,
+            predictions.shape,
+        )
+        writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 7, local_num)
 
     logging.info("%s iterations per epoch", len(train_loader))
     logging.info("%s val iterations per epoch", len(val_loader))
@@ -246,8 +257,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
             if torch.cuda.is_available():
                 volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
             else:
-                volume_batch, label_batch = volume_batch.cpu(), label_batch.cpu()                
-            
+                volume_batch, label_batch = volume_batch.cpu(), label_batch.cpu()
+
             outputs = model(volume_batch)
 
             loss_ce = ce_loss(outputs, label_batch[:].long())
@@ -294,7 +305,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 else:
                     image, label = image.cpu(), label.cpu()
 
-                outputs =  model(image)
+                outputs = model(image)
                 image_write_helper(image, label, outputs, epoch_num, prefix="val")
 
                 metric_i = test_single_volume(
@@ -305,7 +316,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                     patch_size=[args.img_size, args.img_size],
                 )
                 metric_list += np.array(metric_i)
-            
+
             metric_list = metric_list / len(db_val)
             for class_i in range(num_classes - 1):
                 writer.add_scalar(
@@ -347,7 +358,6 @@ def trainer_uav_hsi(args, model, snapshot_path):
             )
             model.train()
 
-        
         if epoch_num >= max_epochs - 1:
             save_mode_path = os.path.join(
                 snapshot_path, "epoch_" + str(epoch_num) + ".pth"
@@ -355,7 +365,6 @@ def trainer_uav_hsi(args, model, snapshot_path):
             logging.info("Saving Final model | epoch: %d %s", epoch_num, save_mode_path)
             torch.save(model.state_dict(), save_mode_path)
             logging.info("save model to %s", save_mode_path)
-            
 
         if iter_num >= max_iterations:
             iterator.close()
