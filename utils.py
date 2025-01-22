@@ -105,7 +105,11 @@ def test_single_volume(
                     pred = out
                 prediction[ind] = pred
     else:
-        input_im = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().cuda()
+        if len(image.shape) == 2:
+            input_im = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).float().cuda()
+        elif len(image.shape) == 3:
+            input_im = torch.from_numpy(image).unsqueeze(0).float().cuda()
+
         net.eval()
         with torch.no_grad():
             out = torch.argmax(torch.softmax(net(input_im), dim=1), dim=1).squeeze(0)

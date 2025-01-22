@@ -214,12 +214,12 @@ def trainer_uav_hsi(args, model, snapshot_path):
         local_num: int,
         prefix: str = "train",
     ) -> None:
-        logging.info(
-            "image_write_helper %s %s %s",
-            image_batch.shape,
-            label_batch.shape,
-            predictions.shape,
-        )
+        # logging.info(
+        #     "image_write_helper %s %s %s",
+        #     image_batch.shape,
+        #     label_batch.shape,
+        #     predictions.shape,
+        # )
         image = image_batch[0, ...]
         image = (image - image.min()) / (image.max() - image.min())
         writer.add_image(f"{prefix}/Image", image, local_num)
@@ -230,12 +230,12 @@ def trainer_uav_hsi(args, model, snapshot_path):
         predictions = torch.argmax(
             torch.softmax(predictions, dim=1), dim=1, keepdim=True
         )
-        logging.info(
-            "image_write_helper %s %s %s",
-            image_batch.shape,
-            label_batch.shape,
-            predictions.shape,
-        )
+        # logging.info(
+        #     "image_write_helper %s %s %s",
+        #     image_batch.shape,
+        #     label_batch.shape,
+        #     predictions.shape,
+        # )
         writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 7, local_num)
 
     logging.info("%s iterations per epoch", len(train_loader))
