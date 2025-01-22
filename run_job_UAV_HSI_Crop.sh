@@ -40,7 +40,7 @@ MODEL_NAME=R50+ViT-B_16
 DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
-SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_02"
+SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_03"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -62,7 +62,7 @@ nvidia-smi
 
 mkdir -p $SNAPSHOT_DIR
 echo "########################################################################"
-echo "#\n# Test with selected channels as BGR (49, 89, 180)\n#"
+printf "#\n# Test with average of channels as BGR\n#"
 echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 

@@ -1,5 +1,6 @@
 import os
 import logging
+import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -53,7 +54,8 @@ class UAV_HSI_Crop_dataset(Dataset):
         # image = np.asarray(image, dtype="float32") / 255
         # # =====================================================================
         # Convert the image to RGB
-        image = image[..., (49, 89, 180)]
+        # image = image[..., (49, 89, 180)]
+        image = self._get_rgb_image(image)
         image[image < 0] = 0
         image[image > 1] = 1
 
@@ -80,3 +82,118 @@ class UAV_HSI_Crop_dataset(Dataset):
 
         sample["case_name"] = str(fname)
         return sample
+
+    def _get_rgb_image(self, hsi):
+        band_dictionary = {
+            "visible-violet": {"lower": 365, "upper": 450, "color": "violet"},
+            "visible-blue": {
+                "lower": 450,
+                "upper": 485,
+                "color": "blue",
+            },  # BlueWavelengths = 450:495
+            "visible-cyan": {"lower": 485, "upper": 500, "color": "cyan"},
+            "visible-green": {
+                "lower": 500,
+                "upper": 565,
+                "color": "green",
+            },  # GreenWavelengths = 550:570
+            "visible-yellow": {"lower": 565, "upper": 590, "color": "yellow"},
+            "visible-orange": {"lower": 590, "upper": 625, "color": "orange"},
+            "visible-red": {
+                "lower": 625,
+                "upper": 740,
+                "color": "red",
+            },  # RedWavelengths = 620:659
+            "near-infrared": {"lower": 740, "upper": 1100, "color": "gray"},
+            "shortwave-infrared": {"lower": 1100, "upper": 2500, "color": "white"},
+        }
+
+        def classifier(band):
+            # function to classify bands
+            def between(wavelength, region):
+                return region["lower"] < wavelength <= region["upper"]
+
+            for region, limits in band_dictionary.items():
+                if between(band, limits):
+                    return region
+
+        def get_band_centers(band_centers):
+            # print(band_centers)
+
+            band_numbers = [i for i in range(1, len(band_centers) + 1)]
+            # print(band_numbers)
+
+            em_regions = [classifier(b) for b in band_centers]
+            # print(em_regions)
+
+            return band_centers, band_numbers, em_regions
+
+        def get_all_bands(wav):
+            band_centers, band_numbers, em_regions = get_band_centers(wav)
+
+            # data frame describing bands
+            bands = pd.DataFrame(
+                {
+                    "Band number": band_numbers,
+                    "Band center (nm)": band_centers,
+                    "EM region": em_regions,
+                },
+                index=band_numbers,
+            ).sort_index()
+
+            return bands
+
+        def get_local_bands(hsi, bands, start, end):
+            def get_band_number(w, bands):
+                return bands.iloc[(bands["Band center (nm)"] - w).abs().argsort()[1]]
+
+            Si = get_band_number(start, bands)
+            Ei = get_band_number(end, bands)
+
+            # # print band information from the table
+            # print("---" * 20)
+            # print(str("\n" + "---" * 20 + "\n").join([str(Si), str(Ei)]))
+
+            Si, Ei = int(Si["Band number"]) - 1, int(Ei["Band number"]) - 1
+            new_stack = np.zeros((nrows, ncols, Ei + 1 - Si))
+
+            for i in range(Ei + 1 - Si):
+                Sa = hsi[..., Si + i]
+                Sa[Sa < 0] = 0
+
+                new_stack[..., i] = Sa
+
+            new_stack = np.mean(new_stack, axis=2)
+            # logging.info("get_local_bands %s %s %s", new_stack.shape, nrows, ncols)
+
+            return new_stack
+
+        nrows, ncols, _ = hsi.shape
+        wavelength = list(np.linspace(400, 1000, 200))
+        bands = get_all_bands(wavelength)
+
+        # make rgb stack
+        rgb_stack = np.zeros((nrows, ncols, 3), "uint8")
+
+        rgb_stack[..., 0], rgb_stack[..., 1], rgb_stack[..., 2] = (
+            get_local_bands(
+                hsi,
+                bands,
+                band_dictionary["visible-blue"]["lower"],
+                band_dictionary["visible-blue"]["upper"],
+            ),
+            get_local_bands(
+                hsi,
+                bands,
+                band_dictionary["visible-green"]["lower"],
+                band_dictionary["visible-green"]["upper"],
+            ),
+            get_local_bands(
+                hsi,
+                bands,
+                band_dictionary["visible-red"]["lower"],
+                band_dictionary["visible-red"]["upper"],
+            ),
+        )
+
+        return rgb_stack
