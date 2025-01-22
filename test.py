@@ -160,7 +160,9 @@ def main():
 
     snapshot = os.path.join(snapshot_path, "best_model.pth")
     if not os.path.exists(snapshot):
-        snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
+        snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs))
+        if not os.path.exists(snapshot):
+            snapshot = snapshot.replace("best_model", "epoch_" + str(args.max_epochs - 1))
     
     logging.info("Loading model weight: %s", snapshot)
     net.load_state_dict(torch.load(snapshot))
