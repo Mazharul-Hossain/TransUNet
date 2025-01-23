@@ -88,7 +88,7 @@ class UAV_HSI_Crop_dataset(Dataset):
                 sample["image"] = sample["image"].unsqueeze(0)
 
             else:
-                assert sample["image"].shape[-3] == 3, f"Oh no! This assertion failed! {sample["image"].shape}"
+                assert sample["image"].shape[-3] == 3, f"Oh no! This assertion failed! {sample['image'].shape}"
 
             sample["label"] = torch.from_numpy(sample["label"].astype(np.uint8))
 
