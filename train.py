@@ -46,13 +46,13 @@ if __name__ == "__main__":
         else snapshot_path
     )
     snapshot_path = (
-        snapshot_path + "_epo" + str(args.max_epochs)
+        snapshot_path + "_epo_" + str(args.max_epochs)
         if args.max_epochs != 30
         else snapshot_path
     )
     snapshot_path = snapshot_path + "_bs" + str(args.batch_size)
     snapshot_path = (
-        snapshot_path + "_lr" + str(args.base_lr)
+        snapshot_path + "_lr_" + str(args.base_lr)
         if args.base_lr != 0.01
         else snapshot_path
     )

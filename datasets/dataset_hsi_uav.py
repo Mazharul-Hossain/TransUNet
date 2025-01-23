@@ -188,12 +188,12 @@ class UAV_HSI_Crop_dataset(Dataset):
         rgb_stack = np.zeros((nrows, ncols, 3), "float32")
 
         rgb_stack[..., 0], rgb_stack[..., 1], rgb_stack[..., 2] = (
-            get_local_bands(
-                hsi,
-                bands,
-                band_dictionary["visible-blue"]["lower"],
-                band_dictionary["visible-blue"]["upper"],
-            ),
+            # get_local_bands(
+            #     hsi,
+            #     bands,
+            #     band_dictionary["visible-blue"]["lower"],
+            #     band_dictionary["visible-blue"]["upper"],
+            # ),
             get_local_bands(
                 hsi,
                 bands,
@@ -205,6 +205,12 @@ class UAV_HSI_Crop_dataset(Dataset):
                 bands,
                 band_dictionary["visible-red"]["lower"],
                 band_dictionary["visible-red"]["upper"],
+            ),
+            get_local_bands(
+                hsi,
+                bands,
+                band_dictionary["near-infrared"]["lower"],
+                band_dictionary["near-infrared"]["upper"],
             ),
         )
 

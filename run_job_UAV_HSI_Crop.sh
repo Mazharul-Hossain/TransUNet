@@ -40,7 +40,7 @@ MODEL_NAME=R50+ViT-B_16
 DATASET=UAV_HSI_Crop
 
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
-SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_03"
+SNAPSHOT_DIR="/project/mhssain9/Experiment/rgb_04"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -62,7 +62,7 @@ nvidia-smi
 
 mkdir -p $SNAPSHOT_DIR
 echo "########################################################################"
-printf "#\n# Test with average of channels as BGR\n#\n"
+printf "#\n# Test with average of channels as GR-NIR\n#\n"
 echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 
@@ -73,7 +73,7 @@ echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.1 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 600
 
 # Evaluate the trained model
-python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --is_savenii
+python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.1 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 600 --is_savenii
