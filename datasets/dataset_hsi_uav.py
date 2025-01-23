@@ -55,7 +55,8 @@ class UAV_HSI_Crop_dataset(Dataset):
         # image = np.asarray(image, dtype="float32") / 255
         # # =====================================================================
         # Convert the image to RGB
-        # image = image[..., (49, 89, 180)]
+        # image = image[..., (25, 49, 89)] # BGR
+        # image = image[..., (49, 89, 180)] # GR-NIR
         image = self._get_rgb_image(image)
         image[image < 0] = 0
         image[image > 1] = 1
