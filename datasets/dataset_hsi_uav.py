@@ -2,6 +2,7 @@ import os
 import logging
 import pandas as pd
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 
@@ -79,6 +80,17 @@ class UAV_HSI_Crop_dataset(Dataset):
 
         if self.transform:
             sample = self.transform(sample)
+
+        else:            
+            sample["image"] = torch.from_numpy(sample["image"].astype(np.float32))
+            
+            if len(sample["image"].shape) == 2:
+                sample["image"] = sample["image"].unsqueeze(0)
+
+            else:
+                assert sample["image"].shape[-3] == 3, f"Oh no! This assertion failed! {sample["image"].shape}"
+
+            sample["label"] = torch.from_numpy(sample["label"].astype(np.uint8))
 
         sample["case_name"] = str(fname)
         return sample

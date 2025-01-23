@@ -103,6 +103,7 @@ def main():
 
     dataset_name = args.dataset
     args.num_classes = dataset_config[dataset_name]["num_classes"]
+    args.root_path = dataset_config[dataset_name]["root_path"]
     args.volume_path = dataset_config[dataset_name]["volume_path"]
     args.Dataset = dataset_config[dataset_name]["Dataset"]
     args.list_dir = dataset_config[dataset_name]["list_dir"]

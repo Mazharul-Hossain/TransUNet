@@ -62,7 +62,7 @@ nvidia-smi
 
 mkdir -p $SNAPSHOT_DIR
 echo "########################################################################"
-printf "#\n# Test with average of channels as BGR\n#"
+printf "#\n# Test with average of channels as BGR\n#\n"
 echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 
