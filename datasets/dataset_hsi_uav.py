@@ -185,7 +185,7 @@ class UAV_HSI_Crop_dataset(Dataset):
         bands = get_all_bands(wavelength)
 
         # make rgb stack
-        rgb_stack = np.zeros((nrows, ncols, 3), "uint8")
+        rgb_stack = np.zeros((nrows, ncols, 3), "float32")
 
         rgb_stack[..., 0], rgb_stack[..., 1], rgb_stack[..., 2] = (
             get_local_bands(
