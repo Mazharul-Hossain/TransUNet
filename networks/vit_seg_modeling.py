@@ -17,7 +17,7 @@ from torch.nn import Dropout, Softmax, Linear, Conv2d, LayerNorm
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
 from . import vit_seg_configs as configs
-from .vit_seg_modeling_resnet_skip import ResNetV2
+from .vit_seg_modeling_resnet_skip import ResNetV2, np2th
 
 
 logger = logging.getLogger(__name__)
@@ -31,13 +31,6 @@ FC_0 = "MlpBlock_3/Dense_0"
 FC_1 = "MlpBlock_3/Dense_1"
 ATTENTION_NORM = "LayerNorm_0"
 MLP_NORM = "LayerNorm_2"
-
-
-def np2th(weights, conv=False):
-    """Possibly convert HWIO to OIHW."""
-    if conv:
-        weights = weights.transpose([3, 2, 0, 1])
-    return torch.from_numpy(weights)
 
 
 def swish(x):
@@ -146,6 +139,7 @@ class Embeddings(nn.Module):
                 img_size[1] // patch_size_real[1]
             )
             self.hybrid = True
+            
         else:
             patch_size = _pair(config.patches["size"])
             n_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
@@ -157,6 +151,7 @@ class Embeddings(nn.Module):
                 width_factor=config.resnet.width_factor,
             )
             in_channels = self.hybrid_model.width * 16
+            
         self.patch_embeddings = Conv2d(
             in_channels=in_channels,
             out_channels=config.hidden_size,
@@ -172,8 +167,10 @@ class Embeddings(nn.Module):
     def forward(self, x):
         if self.hybrid:
             x, features = self.hybrid_model(x)
+            
         else:
             features = None
+            
         x = self.patch_embeddings(x)  # (B, hidden. n_patches^(1/2), n_patches^(1/2))
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
@@ -208,30 +205,30 @@ class Block(nn.Module):
         ROOT = f"Transformer/encoderblock_{n_block}"
         with torch.no_grad():
             query_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_Q, "kernel")])
+                np2th(weights[pjoin(ROOT, ATTENTION_Q, "kernel").replace("\\","/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             key_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_K, "kernel")])
+                np2th(weights[pjoin(ROOT, ATTENTION_K, "kernel").replace("\\","/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             value_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_V, "kernel")])
+                np2th(weights[pjoin(ROOT, ATTENTION_V, "kernel").replace("\\","/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             out_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_OUT, "kernel")])
+                np2th(weights[pjoin(ROOT, ATTENTION_OUT, "kernel").replace("\\","/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
 
-            query_bias = np2th(weights[pjoin(ROOT, ATTENTION_Q, "bias")]).view(-1)
-            key_bias = np2th(weights[pjoin(ROOT, ATTENTION_K, "bias")]).view(-1)
-            value_bias = np2th(weights[pjoin(ROOT, ATTENTION_V, "bias")]).view(-1)
-            out_bias = np2th(weights[pjoin(ROOT, ATTENTION_OUT, "bias")]).view(-1)
+            query_bias = np2th(weights[pjoin(ROOT, ATTENTION_Q, "bias").replace("\\","/")]).view(-1)
+            key_bias = np2th(weights[pjoin(ROOT, ATTENTION_K, "bias").replace("\\","/")]).view(-1)
+            value_bias = np2th(weights[pjoin(ROOT, ATTENTION_V, "bias").replace("\\","/")]).view(-1)
+            out_bias = np2th(weights[pjoin(ROOT, ATTENTION_OUT, "bias").replace("\\","/")]).view(-1)
 
             self.attn.query.weight.copy_(query_weight)
             self.attn.key.weight.copy_(key_weight)
@@ -242,10 +239,10 @@ class Block(nn.Module):
             self.attn.value.bias.copy_(value_bias)
             self.attn.out.bias.copy_(out_bias)
 
-            mlp_weight_0 = np2th(weights[pjoin(ROOT, FC_0, "kernel")]).t()
-            mlp_weight_1 = np2th(weights[pjoin(ROOT, FC_1, "kernel")]).t()
-            mlp_bias_0 = np2th(weights[pjoin(ROOT, FC_0, "bias")]).t()
-            mlp_bias_1 = np2th(weights[pjoin(ROOT, FC_1, "bias")]).t()
+            mlp_weight_0 = np2th(weights[pjoin(ROOT, FC_0, "kernel").replace("\\","/")]).t()
+            mlp_weight_1 = np2th(weights[pjoin(ROOT, FC_1, "kernel").replace("\\","/")]).t()
+            mlp_bias_0 = np2th(weights[pjoin(ROOT, FC_0, "bias").replace("\\","/")]).t()
+            mlp_bias_1 = np2th(weights[pjoin(ROOT, FC_1, "bias").replace("\\","/")]).t()
 
             self.ffn.fc1.weight.copy_(mlp_weight_0)
             self.ffn.fc2.weight.copy_(mlp_weight_1)
@@ -253,13 +250,13 @@ class Block(nn.Module):
             self.ffn.fc2.bias.copy_(mlp_bias_1)
 
             self.attention_norm.weight.copy_(
-                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "scale")])
+                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "scale").replace("\\","/")])
             )
             self.attention_norm.bias.copy_(
-                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "bias")])
+                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "bias").replace("\\","/")])
             )
-            self.ffn_norm.weight.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "scale")]))
-            self.ffn_norm.bias.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "bias")]))
+            self.ffn_norm.weight.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "scale").replace("\\","/")]))
+            self.ffn_norm.bias.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "bias").replace("\\","/")]))
 
 
 class Encoder(nn.Module):

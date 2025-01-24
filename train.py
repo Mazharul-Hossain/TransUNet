@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-from networks.vit_seg_modeling import VisionTransformer as ViT_seg
+from networks.vit_seg_modeling import VisionTransformer
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 from trainer import trainer_synapse, trainer_acdc, trainer_uav_hsi
 from common_parser import get_common_parser, dataset_config
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     
     # =========================================================================
     dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    net = ViT_seg(
+    net = VisionTransformer(
             config_vit, img_size=args.img_size, num_classes=config_vit.n_classes
     ).to(dev)
 

@@ -46,7 +46,8 @@ conda create -n trans_u_env python=3.7
 #
 # To activate this environment, use
 #
-#     $ conda env create -f trans_u_env.yml
+#     $ conda env create -f trans_u_new_env.yml
+#
 #     $ conda activate trans_u_env
 #
 # To deactivate an active environment, use

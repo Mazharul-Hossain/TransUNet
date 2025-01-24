@@ -1,0 +1,29 @@
+name: trans_u_02_env
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.11
+  - pytorch
+  - torchvision
+  - torchaudio 
+  - pytorch-cuda=12.4
+  - tqdm
+  - numpy
+  - scipy
+  - pip
+  - pip:
+    - ml-collections
+    - tensorboard
+    - tensorboardX
+    - ml-collections
+    - medpy
+    - SimpleITK
+    - h5py
+    - chardet
+    - opencv-contrib-python
+    - opencv-python
+    

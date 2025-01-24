@@ -1,4 +1,4 @@
-import math
+# import math
 
 from os.path import join as pjoin
 from collections import OrderedDict
@@ -76,18 +76,18 @@ class PreActBottleneck(nn.Module):
         return y
 
     def load_from(self, weights, n_block, n_unit):
-        conv1_weight = np2th(weights[pjoin(n_block, n_unit, "conv1/kernel")], conv=True)
-        conv2_weight = np2th(weights[pjoin(n_block, n_unit, "conv2/kernel")], conv=True)
-        conv3_weight = np2th(weights[pjoin(n_block, n_unit, "conv3/kernel")], conv=True)
+        conv1_weight = np2th(weights[pjoin(n_block, n_unit, "conv1/kernel").replace("\\","/")], conv=True)
+        conv2_weight = np2th(weights[pjoin(n_block, n_unit, "conv2/kernel").replace("\\","/")], conv=True)
+        conv3_weight = np2th(weights[pjoin(n_block, n_unit, "conv3/kernel").replace("\\","/")], conv=True)
 
-        gn1_weight = np2th(weights[pjoin(n_block, n_unit, "gn1/scale")])
-        gn1_bias = np2th(weights[pjoin(n_block, n_unit, "gn1/bias")])
+        gn1_weight = np2th(weights[pjoin(n_block, n_unit, "gn1/scale").replace("\\","/")])
+        gn1_bias = np2th(weights[pjoin(n_block, n_unit, "gn1/bias").replace("\\","/")])
 
-        gn2_weight = np2th(weights[pjoin(n_block, n_unit, "gn2/scale")])
-        gn2_bias = np2th(weights[pjoin(n_block, n_unit, "gn2/bias")])
+        gn2_weight = np2th(weights[pjoin(n_block, n_unit, "gn2/scale").replace("\\","/")])
+        gn2_bias = np2th(weights[pjoin(n_block, n_unit, "gn2/bias").replace("\\","/")])
 
-        gn3_weight = np2th(weights[pjoin(n_block, n_unit, "gn3/scale")])
-        gn3_bias = np2th(weights[pjoin(n_block, n_unit, "gn3/bias")])
+        gn3_weight = np2th(weights[pjoin(n_block, n_unit, "gn3/scale").replace("\\","/")])
+        gn3_bias = np2th(weights[pjoin(n_block, n_unit, "gn3/bias").replace("\\","/")])
 
         self.conv1.weight.copy_(conv1_weight)
         self.conv2.weight.copy_(conv2_weight)
@@ -104,10 +104,10 @@ class PreActBottleneck(nn.Module):
 
         if hasattr(self, "downsample"):
             proj_conv_weight = np2th(
-                weights[pjoin(n_block, n_unit, "conv_proj/kernel")], conv=True
+                weights[pjoin(n_block, n_unit, "conv_proj/kernel").replace("\\","/")], conv=True
             )
-            proj_gn_weight = np2th(weights[pjoin(n_block, n_unit, "gn_proj/scale")])
-            proj_gn_bias = np2th(weights[pjoin(n_block, n_unit, "gn_proj/bias")])
+            proj_gn_weight = np2th(weights[pjoin(n_block, n_unit, "gn_proj/scale").replace("\\","/")])
+            proj_gn_bias = np2th(weights[pjoin(n_block, n_unit, "gn_proj/bias").replace("\\","/")])
 
             self.downsample.weight.copy_(proj_conv_weight)
             self.gn_proj.weight.copy_(proj_gn_weight.view(-1))
@@ -231,11 +231,13 @@ class ResNetV2(nn.Module):
         features = []
         b, c, in_size, _ = x.size()
         x = self.root(x)
+        
         features.append(x)
         x = nn.MaxPool2d(kernel_size=3, stride=2, padding=0)(x)
         for i in range(len(self.body) - 1):
             x = self.body[i](x)
             right_size = int(in_size / 4 / (i + 1))
+            
             if x.size()[2] != right_size:
                 pad = right_size - x.size()[2]
                 assert pad < 3 and pad > 0, f"x {x.size()} should {right_size}"
@@ -245,6 +247,7 @@ class ResNetV2(nn.Module):
                 feat[:, :, 0 : x.size()[2], 0 : x.size()[3]] = x[:]
             else:
                 feat = x
+                
             features.append(feat)
         x = self.body[-1](x)
         return x, features[::-1]
