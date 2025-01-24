@@ -41,7 +41,7 @@ DATASET=UAV_HSI_Crop
 
 # CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_01"
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_02"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -68,7 +68,7 @@ if [[ ! -d "$SNAPSHOT_DIR" ]]; then
 fi
 
 echo "########################################################################"
-printf "#\n# Test with imagenet21k+imagenet2012\n#\n"
+printf "#\n# Test with imagenet21k+imagenet2012 loss transformer 3  \n#\n"
 echo "########################################################################"
 echo "To restart the same experiment delete the SNAPSHOT_DIR:" 
 echo "rm -rf '$SNAPSHOT_DIR'" 

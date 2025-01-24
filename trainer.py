@@ -249,7 +249,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_epochs = args.max_epochs
     max_iterations = max_epochs * len(train_loader)
 
-    best_performance = 0.0
+    best_performance, loss_alpha = 0.0, 0.7
     iterator = tqdm(range(1, max_epochs), ncols=70)
     for epoch_num in iterator:
         loss_list, loss_ce_list, loss_dc_list = [], [], []
@@ -262,7 +262,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
             loss_ce = ce_loss(outputs, label_batch[:].long())
             loss_dice = dice_loss(outputs, label_batch, softmax=True)
-            loss = 0.5 * loss_ce + 0.5 * loss_dice
+            loss = (1 - loss_alpha) * loss_ce + loss_alpha * loss_dice
 
             optimizer.zero_grad()
             loss.backward()

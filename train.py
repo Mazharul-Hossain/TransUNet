@@ -65,6 +65,7 @@ if __name__ == "__main__":
         os.makedirs(snapshot_path)
         
     config_vit = CONFIGS_ViT_seg[args.vit_name]
+    config_vit.transformer.num_layers = 3
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
     if args.vit_name.find("R50") != -1:
