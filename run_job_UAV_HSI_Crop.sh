@@ -17,6 +17,8 @@
 # git pull
 # chmod +x run_job_UAV_HSI_Crop.sh
 # sbatch run_job_UAV_HSI_Crop.sh
+#
+# cd /home/mhssain9/TransUNet/ && conda activate trans_u_env && git reset --hard && git pull && chmod +x run_job_UAV_HSI_Crop.sh && sbatch run_job_UAV_HSI_Crop.sh
 # squeue -p bigTiger -u $USER -O jobid,partition,username,state,reasonlist,gres
 
 # sacct -o JobId%20,MaxVMSize,MaxRSS,NCPUS,ReqTRES%25,ReqMem --units=G -j [jobid]
@@ -79,7 +81,7 @@ echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 32 --base_lr 0.3 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000
+# python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 32 --base_lr 0.3 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000
 
 # Evaluate the trained model
 python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 32 --base_lr 0.3 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --is_savenii

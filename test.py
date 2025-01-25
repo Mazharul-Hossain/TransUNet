@@ -163,6 +163,7 @@ def main():
     logging.info(str(args))
 
     config_vit = CONFIGS_ViT_seg[args.vit_name]
+    config_vit.transformer.num_layers = 3
     config_vit.n_classes = args.num_classes
     config_vit.n_skip = args.n_skip
     config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
