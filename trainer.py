@@ -174,6 +174,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     logging.info(str(args))
 
     base_lr = args.base_lr
+    base_patience = 10
     num_classes = args.num_classes
     batch_size = args.batch_size * args.n_gpu
     # max_iterations = args.max_iterations
@@ -193,6 +194,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
         worker_init_fn=worker_init_fn,
     )
     val_loader = DataLoader(db_val, batch_size=1, shuffle=False, num_workers=4)
+    test_loader = DataLoader(db_val, batch_size=batch_size, shuffle=True, num_workers=4)
 
     if args.n_gpu > 1:
         model = nn.DataParallel(model)
@@ -250,11 +252,53 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_iterations = max_epochs * len(train_loader)
 
     best_performance, loss_alpha = 0.0, 0.7
+    patience, val_loss = base_patience, float("inf")
     iterator = tqdm(range(1, max_epochs), ncols=70)
     for epoch_num in iterator:
         loss_list, loss_ce_list, loss_dc_list = [], [], []
 
-        for _, sampled_batch in enumerate(train_loader):
+        for i_batch, sampled_batch in enumerate(train_loader):
+            volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
+            volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
+
+            outputs = model(volume_batch)
+
+            loss_ce = ce_loss(outputs, label_batch[:].long())
+            loss_dice = dice_loss(outputs, label_batch, softmax=True)
+            loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            iter_num += 1
+            loss_list.append(float(loss.item()))
+            loss_ce_list.append(float(loss_ce.item()))
+            loss_dc_list.append(float(loss_dice.item()))
+
+            logging.info(
+                "iteration %d, %d, loss: %f, loss_ce: %f",
+                iter_num,
+                (epoch_num - 1) * len(train_loader) + i_batch,
+                loss.item(),
+                loss_ce.item(),
+            )
+
+            if iter_num % 20 == 0:
+                image_write_helper(volume_batch, label_batch, outputs, iter_num)
+
+        # lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
+        lr_ *= (1.0 - iter_num / max_iterations) ** 0.9
+        for param_group in optimizer.param_groups:
+            param_group["lr"] = lr_
+
+        writer.add_scalar("info/lr", lr_, epoch_num)
+        writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
+        writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
+        writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
+
+        loss_list, loss_ce_list, loss_dc_list = [], [], []
+        for i_batch, sampled_batch in enumerate(test_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
             volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
 
@@ -264,33 +308,29 @@ def trainer_uav_hsi(args, model, snapshot_path):
             loss_dice = dice_loss(outputs, label_batch, softmax=True)
             loss = (1 - loss_alpha) * loss_ce + loss_alpha * loss_dice
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            iter_num = iter_num + 1
             loss_list.append(float(loss.item()))
             loss_ce_list.append(float(loss_ce.item()))
             loss_dc_list.append(float(loss_dice.item()))
 
             logging.info(
-                "iteration %d : loss : %f, loss_ce: %f",
+                "val iteration %d, %d, loss: %f, loss_ce: %f",
                 iter_num,
+                i_batch,
                 loss.item(),
                 loss_ce.item(),
             )
+        
+        loss_total_val = np.asarray(loss_list).mean()
+        writer.add_scalar("info/loss_total_val", loss_total_val, epoch_num)
+        writer.add_scalar("info/loss_ce_val", np.asarray(loss_ce_list).mean(), epoch_num)
+        writer.add_scalar("info/loss_dice_val", np.asarray(loss_dc_list).mean(), epoch_num)
 
-            if iter_num % 20 == 0:
-                image_write_helper(volume_batch, label_batch, outputs, iter_num)
-
-        lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
-        for param_group in optimizer.param_groups:
-            param_group["lr"] = lr_
-
-        writer.add_scalar("info/lr", lr_, epoch_num)
-        writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
-        writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
-        writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
+        if (val_loss - loss_total_val) > 0.01:
+            val_loss = loss_total_val
+            patience = base_patience
+        
+        else:
+            patience -= 1
 
         if epoch_num % 20 == 0:
             model.eval()
@@ -362,7 +402,14 @@ def trainer_uav_hsi(args, model, snapshot_path):
             torch.save(model.state_dict(), save_mode_path)
             logging.info("save model to %s", save_mode_path)
 
-        if iter_num >= max_iterations:
+        if iter_num > max_iterations or patience < 0:
+            save_mode_path = os.path.join(
+                snapshot_path, "epoch_" + str(epoch_num) + ".pth"
+            )
+            logging.info("Saving model | epoch: %d %s", epoch_num, save_mode_path)
+            torch.save(model.state_dict(), save_mode_path)
+            logging.info("save model to %s", save_mode_path)
+
             iterator.close()
             break
 
