@@ -91,6 +91,7 @@ class Attention(nn.Module):
         context_layer = context_layer.view(*new_context_layer_shape)
         attention_output = self.out(context_layer)
         attention_output = self.proj_dropout(attention_output)
+
         return attention_output, weights
 
 
@@ -139,7 +140,7 @@ class Embeddings(nn.Module):
                 img_size[1] // patch_size_real[1]
             )
             self.hybrid = True
-            
+
         else:
             patch_size = _pair(config.patches["size"])
             n_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
@@ -151,7 +152,7 @@ class Embeddings(nn.Module):
                 width_factor=config.resnet.width_factor,
             )
             in_channels = self.hybrid_model.width * 16
-            
+
         self.patch_embeddings = Conv2d(
             in_channels=in_channels,
             out_channels=config.hidden_size,
@@ -167,10 +168,10 @@ class Embeddings(nn.Module):
     def forward(self, x):
         if self.hybrid:
             x, features = self.hybrid_model(x)
-            
+
         else:
             features = None
-            
+
         x = self.patch_embeddings(x)  # (B, hidden. n_patches^(1/2), n_patches^(1/2))
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
@@ -205,30 +206,38 @@ class Block(nn.Module):
         ROOT = f"Transformer/encoderblock_{n_block}"
         with torch.no_grad():
             query_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_Q, "kernel").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_Q, "kernel").replace("\\", "/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             key_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_K, "kernel").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_K, "kernel").replace("\\", "/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             value_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_V, "kernel").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_V, "kernel").replace("\\", "/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
             out_weight = (
-                np2th(weights[pjoin(ROOT, ATTENTION_OUT, "kernel").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_OUT, "kernel").replace("\\", "/")])
                 .view(self.hidden_size, self.hidden_size)
                 .t()
             )
 
-            query_bias = np2th(weights[pjoin(ROOT, ATTENTION_Q, "bias").replace("\\","/")]).view(-1)
-            key_bias = np2th(weights[pjoin(ROOT, ATTENTION_K, "bias").replace("\\","/")]).view(-1)
-            value_bias = np2th(weights[pjoin(ROOT, ATTENTION_V, "bias").replace("\\","/")]).view(-1)
-            out_bias = np2th(weights[pjoin(ROOT, ATTENTION_OUT, "bias").replace("\\","/")]).view(-1)
+            query_bias = np2th(
+                weights[pjoin(ROOT, ATTENTION_Q, "bias").replace("\\", "/")]
+            ).view(-1)
+            key_bias = np2th(
+                weights[pjoin(ROOT, ATTENTION_K, "bias").replace("\\", "/")]
+            ).view(-1)
+            value_bias = np2th(
+                weights[pjoin(ROOT, ATTENTION_V, "bias").replace("\\", "/")]
+            ).view(-1)
+            out_bias = np2th(
+                weights[pjoin(ROOT, ATTENTION_OUT, "bias").replace("\\", "/")]
+            ).view(-1)
 
             self.attn.query.weight.copy_(query_weight)
             self.attn.key.weight.copy_(key_weight)
@@ -239,10 +248,18 @@ class Block(nn.Module):
             self.attn.value.bias.copy_(value_bias)
             self.attn.out.bias.copy_(out_bias)
 
-            mlp_weight_0 = np2th(weights[pjoin(ROOT, FC_0, "kernel").replace("\\","/")]).t()
-            mlp_weight_1 = np2th(weights[pjoin(ROOT, FC_1, "kernel").replace("\\","/")]).t()
-            mlp_bias_0 = np2th(weights[pjoin(ROOT, FC_0, "bias").replace("\\","/")]).t()
-            mlp_bias_1 = np2th(weights[pjoin(ROOT, FC_1, "bias").replace("\\","/")]).t()
+            mlp_weight_0 = np2th(
+                weights[pjoin(ROOT, FC_0, "kernel").replace("\\", "/")]
+            ).t()
+            mlp_weight_1 = np2th(
+                weights[pjoin(ROOT, FC_1, "kernel").replace("\\", "/")]
+            ).t()
+            mlp_bias_0 = np2th(
+                weights[pjoin(ROOT, FC_0, "bias").replace("\\", "/")]
+            ).t()
+            mlp_bias_1 = np2th(
+                weights[pjoin(ROOT, FC_1, "bias").replace("\\", "/")]
+            ).t()
 
             self.ffn.fc1.weight.copy_(mlp_weight_0)
             self.ffn.fc2.weight.copy_(mlp_weight_1)
@@ -250,13 +267,17 @@ class Block(nn.Module):
             self.ffn.fc2.bias.copy_(mlp_bias_1)
 
             self.attention_norm.weight.copy_(
-                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "scale").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "scale").replace("\\", "/")])
             )
             self.attention_norm.bias.copy_(
-                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "bias").replace("\\","/")])
+                np2th(weights[pjoin(ROOT, ATTENTION_NORM, "bias").replace("\\", "/")])
             )
-            self.ffn_norm.weight.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "scale").replace("\\","/")]))
-            self.ffn_norm.bias.copy_(np2th(weights[pjoin(ROOT, MLP_NORM, "bias").replace("\\","/")]))
+            self.ffn_norm.weight.copy_(
+                np2th(weights[pjoin(ROOT, MLP_NORM, "scale").replace("\\", "/")])
+            )
+            self.ffn_norm.bias.copy_(
+                np2th(weights[pjoin(ROOT, MLP_NORM, "bias").replace("\\", "/")])
+            )
 
 
 class Encoder(nn.Module):
@@ -273,10 +294,19 @@ class Encoder(nn.Module):
 
     def forward(self, hidden_states):
         attn_weights = []
-        for layer_block in self.layer:
+        past_hidden_states = hidden_states
+        
+        for ind, layer_block in enumerate(self.layer):
             hidden_states, weights = layer_block(hidden_states)
+
             if self.vis:
                 attn_weights.append(weights)
+
+            if ind % 2:
+                cur_hidden_states = hidden_states
+                hidden_states += past_hidden_states
+                past_hidden_states = cur_hidden_states
+
         encoded = self.encoder_norm(hidden_states)
         return encoded, attn_weights
 
@@ -441,7 +471,7 @@ class VisionTransformer(nn.Module):
             # print("forward before", x.size())
             x = x.repeat(1, 3, 1, 1)
             # print("forward after", x.size())
-            
+
         # x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
         x, _, features = self.transformer(x)
 
@@ -477,7 +507,9 @@ class VisionTransformer(nn.Module):
                 self.transformer.embeddings.position_embeddings.copy_(posemb)
             else:
                 logger.info(
-                    "load_pretrained: resized variant: %s to %s", posemb.size(), posemb_new.size()
+                    "load_pretrained: resized variant: %s to %s",
+                    posemb.size(),
+                    posemb_new.size(),
                 )
                 ntok_new = posemb_new.size(1)
                 if self.classifier == "seg":
@@ -485,7 +517,7 @@ class VisionTransformer(nn.Module):
                 gs_old = int(np.sqrt(len(posemb_grid)))
                 gs_new = int(np.sqrt(ntok_new))
                 print("load_pretrained: grid-size from", gs_old, "to", gs_new)
-                
+
                 posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
                 zoom = (gs_new / gs_old, gs_new / gs_old, 1)
                 posemb_grid = ndimage.zoom(posemb_grid, zoom, order=1)  # th2np

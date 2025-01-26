@@ -173,8 +173,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.info(str(args))
 
-    base_lr = args.base_lr
-    base_patience = 10
+    lr_ = base_lr = args.base_lr
+    decay_rate = 0.01
+    base_patience = 20
     num_classes = args.num_classes
     batch_size = args.batch_size * args.n_gpu
     # max_iterations = args.max_iterations
@@ -251,7 +252,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_epochs = args.max_epochs
     max_iterations = max_epochs * len(train_loader)
 
-    best_performance, loss_alpha = 0.0, 0.7
+    best_performance, loss_alpha = 0.0, 0.5
     patience, val_loss = base_patience, float("inf")
     iterator = tqdm(range(1, max_epochs), ncols=70)
     for epoch_num in iterator:
@@ -288,9 +289,11 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 image_write_helper(volume_batch, label_batch, outputs, iter_num)
 
         # lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
-        lr_ *= (1.0 - iter_num / max_iterations) ** 0.9
-        for param_group in optimizer.param_groups:
-            param_group["lr"] = lr_
+        # lr_ *= (1.0 - iter_num / max_iterations) ** 0.9
+        if base_patience <= epoch_num:
+            lr_ = base_lr * np.exp(-decay_rate * epoch_num)
+            for param_group in optimizer.param_groups:
+                param_group["lr"] = lr_
 
         writer.add_scalar("info/lr", lr_, epoch_num)
         writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
@@ -306,7 +309,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
             loss_ce = ce_loss(outputs, label_batch[:].long())
             loss_dice = dice_loss(outputs, label_batch, softmax=True)
-            loss = (1 - loss_alpha) * loss_ce + loss_alpha * loss_dice
+            loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
 
             loss_list.append(float(loss.item()))
             loss_ce_list.append(float(loss_ce.item()))
