@@ -43,7 +43,7 @@ DATASET=UAV_HSI_Crop
 
 # CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_04"
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_05"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -81,7 +81,7 @@ echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.3 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.1 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000
 
 # Evaluate the trained model
-python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.3 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --is_savenii
+python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 24 --base_lr 0.1 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --is_savenii

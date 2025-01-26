@@ -209,12 +209,14 @@ def trainer_uav_hsi(args, model, snapshot_path):
     dice_loss = DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + "/log")
+    val_writer = SummaryWriter(snapshot_path + "/val")
 
     def image_write_helper(
         image_batch: np.array,
         label_batch: np.array,
         predictions: np.array,
         local_num: int,
+        local_writer: SummaryWriter,
         prefix: str = "train",
     ) -> None:
         # logging.info(
@@ -225,10 +227,10 @@ def trainer_uav_hsi(args, model, snapshot_path):
         # )
         image = image_batch[0, ...]
         image = (image - image.min()) / (image.max() - image.min())
-        writer.add_image(f"{prefix}/Image", image, local_num)
+        local_writer.add_image(f"{prefix}/Image", image, local_num)
 
         labs = label_batch[0, ...].unsqueeze(0) * 7
-        writer.add_image(f"{prefix}/GroundTruth", labs, local_num)
+        local_writer.add_image(f"{prefix}/GroundTruth", labs, local_num)
 
         predictions = torch.argmax(
             torch.softmax(predictions, dim=1), dim=1, keepdim=True
@@ -239,7 +241,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
         #     label_batch.shape,
         #     predictions.shape,
         # )
-        writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 7, local_num)
+        local_writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 7, local_num)
 
     logging.info("%s iterations per epoch", len(train_loader))
     logging.info("%s val iterations per epoch", len(val_loader))
@@ -286,14 +288,14 @@ def trainer_uav_hsi(args, model, snapshot_path):
             )
 
             if iter_num % 20 == 0:
-                image_write_helper(volume_batch, label_batch, outputs, iter_num)
+                image_write_helper(volume_batch, label_batch, outputs, iter_num, writer)
 
         # lr_ = base_lr * (1.0 - iter_num / max_iterations) ** 0.9
         # lr_ *= (1.0 - iter_num / max_iterations) ** 0.9
-        if base_patience <= epoch_num:
-            lr_ = base_lr * np.exp(-decay_rate * epoch_num)
-            for param_group in optimizer.param_groups:
-                param_group["lr"] = lr_
+        # if base_patience <= epoch_num:
+        lr_ = base_lr * np.exp(-decay_rate * epoch_num)
+        for param_group in optimizer.param_groups:
+            param_group["lr"] = lr_
 
         writer.add_scalar("info/lr", lr_, epoch_num)
         writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
@@ -324,9 +326,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
             )
         
         loss_total_val = np.asarray(loss_list).mean()
-        writer.add_scalar("info/loss_total_val", loss_total_val, epoch_num)
-        writer.add_scalar("info/loss_ce_val", np.asarray(loss_ce_list).mean(), epoch_num)
-        writer.add_scalar("info/loss_dice_val", np.asarray(loss_dc_list).mean(), epoch_num)
+        val_writer.add_scalar("info/loss_total", loss_total_val, epoch_num)
+        val_writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
+        val_writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
 
         if (val_loss - loss_total_val) > 0.01:
             val_loss = loss_total_val
@@ -343,7 +345,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 image, label = image.to(dev), label.to(dev)
 
                 outputs = model(image)
-                image_write_helper(image, label, outputs, epoch_num, prefix="val")
+                image_write_helper(image, label, outputs, epoch_num, val_writer, prefix="val")
 
                 metric_i = test_single_volume(
                     image,
