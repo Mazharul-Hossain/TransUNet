@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import sys
+import collections
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,6 +10,7 @@ import torch.optim as optim
 from torch.nn.modules.loss import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from torch.cuda.amp import GradScaler, autocast
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 from utils import DiceLoss, test_single_volume
@@ -205,6 +207,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     optimizer = optim.SGD(
         model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.001
     ) # weight_decay=0.0001
+    scaler = GradScaler()
     ce_loss = CrossEntropyLoss(ignore_index=4)
     dice_loss = DiceLoss(num_classes)
 
@@ -254,25 +257,39 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_epochs = args.max_epochs
     max_iterations = max_epochs * len(train_loader)
 
+    logging.info("="*80)
+    logging.info("Start new experiment.")
+    logging.info("="*80)
+
     best_performance, loss_alpha = 0.0, 0.5
     patience, val_loss = base_patience, float("inf")
-    iterator = tqdm(range(1, max_epochs), ncols=70)
+    iterator = tqdm(range(1, max_epochs + 1), ncols=70)
     for epoch_num in iterator:
         loss_list, loss_ce_list, loss_dc_list = [], [], []
+        my_gradients = collections.defaultdict(list)
 
         for i_batch, sampled_batch in enumerate(train_loader):
             volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
             volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
 
-            outputs = model(volume_batch)
-
-            loss_ce = ce_loss(outputs, label_batch[:].long())
-            loss_dice = dice_loss(outputs, label_batch, softmax=True)
-            loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
-
             optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            with autocast():
+                outputs = model(volume_batch)
+
+                loss_ce = ce_loss(outputs, label_batch[:].long())
+                loss_dice = dice_loss(outputs, label_batch, softmax=True)
+                loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
+
+            scaler.scale(loss).backward()
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+            for name, param in model.named_parameters():
+                if "weight" in name and param.grad is not None:
+                    val = param.grad.abs().mean()
+                    my_gradients[name].append(float(val.item()))
+                    # logging.info(f"Layer: %s | gradient: %s", name, val)
+                    
+            scaler.step(optimizer)
+            scaler.update()
 
             iter_num += 1
             loss_list.append(float(loss.item()))
@@ -301,6 +318,10 @@ def trainer_uav_hsi(args, model, snapshot_path):
         writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
         writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
         writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
+
+        for k, v in my_gradients.items():
+            writer.add_scalar(f"gradient/{k}", np.asarray(v).mean(), epoch_num)
+            # logging.info("Layer: %s | gradient: %s %s", k, np.array(v).mean(), v)
 
         loss_list, loss_ce_list, loss_dc_list = [], [], []
         for i_batch, sampled_batch in enumerate(test_loader):

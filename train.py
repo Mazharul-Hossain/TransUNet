@@ -67,8 +67,10 @@ if __name__ == "__main__":
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.transformer.num_layers = 3
     config_vit.n_classes = args.num_classes
-    config_vit.n_skip = args.n_skip
+    config_vit.n_skip = 0
     if args.vit_name.find("R50") != -1:
+        
+        config_vit.n_skip = args.n_skip
         config_vit.patches.grid = (
             int(args.img_size / args.vit_patches_size),
             int(args.img_size / args.vit_patches_size),
