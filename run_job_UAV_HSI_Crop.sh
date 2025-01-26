@@ -43,7 +43,7 @@ DATASET=UAV_HSI_Crop
 
 # CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_06"
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_07"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.

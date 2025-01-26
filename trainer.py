@@ -175,7 +175,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
     lr_ = base_lr = args.base_lr
     decay_rate = 0.01
-    base_patience = 20
+    base_patience = 100
     num_classes = args.num_classes
     batch_size = args.batch_size * args.n_gpu
     # max_iterations = args.max_iterations
@@ -203,7 +203,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     model.train()
 
     optimizer = optim.SGD(
-        model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.01
+        model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.001
     ) # weight_decay=0.0001
     ce_loss = CrossEntropyLoss(ignore_index=4)
     dice_loss = DiceLoss(num_classes)
@@ -419,7 +419,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
             break
 
     # export scalar data to JSON for external processing
-    writer.export_scalars_to_json("./all_scalars.json")
+    writer.export_scalars_to_json(os.path.join(snapshot_path, "all_scalars.json"))
     writer.close()
     logging.info("Training Finished!")
 
