@@ -203,8 +203,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
     model.train()
 
     optimizer = optim.SGD(
-        model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.0001
-    )
+        model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.01
+    ) # weight_decay=0.0001
     ce_loss = CrossEntropyLoss(ignore_index=4)
     dice_loss = DiceLoss(num_classes)
 
@@ -365,17 +365,17 @@ def trainer_uav_hsi(args, model, snapshot_path):
             mean_hd95 = np.mean(metric_list, axis=0)[1]
             writer.add_scalar("info/val_hd95_mean", mean_hd95, iter_num)
 
-            for class_i in range(num_classes - 1):
-                writer.add_scalar(
-                    f"info/val_dice_{class_i + 1}",
-                    metric_list[class_i, 0],
-                    iter_num,
-                )
-                writer.add_scalar(
-                    f"info/val_hd95_{class_i + 1}",
-                    metric_list[class_i, 1],
-                    iter_num,
-                )
+            # for class_i in range(num_classes - 1):
+            #     writer.add_scalar(
+            #         f"info/val_dice_{class_i + 1}",
+            #         metric_list[class_i, 0],
+            #         iter_num,
+            #     )
+            #     writer.add_scalar(
+            #         f"info/val_hd95_{class_i + 1}",
+            #         metric_list[class_i, 1],
+            #         iter_num,
+            #     )
 
             if performance > best_performance:
                 best_performance = performance

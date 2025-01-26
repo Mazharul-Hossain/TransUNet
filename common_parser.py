@@ -141,7 +141,7 @@ dataset_config = {
         "root_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",
         "volume_path": "/project/mhssain9/data/UAV-HSI-Crop-Dataset",
         "list_dir": None,
-        "num_classes": 29,
+        "num_classes": 30,
         "z_spacing": 5,
         "info": "hsi",
     },
