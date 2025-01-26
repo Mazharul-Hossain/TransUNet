@@ -175,7 +175,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
     lr_ = base_lr = args.base_lr
     decay_rate = 0.01
-    base_patience = 100
+    base_patience = 20
     num_classes = args.num_classes
     batch_size = args.batch_size * args.n_gpu
     # max_iterations = args.max_iterations
