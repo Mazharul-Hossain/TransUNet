@@ -10,7 +10,7 @@ from tqdm import tqdm
 from utils import test_single_volume
 from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
-from common_parser import get_common_parser, dataset_config
+from common_parser import get_common_parser, dataset_config, get_snapshot_path
 
 
 def inference(args, model, test_save_path=None, data_type: str = "test"):
@@ -86,7 +86,7 @@ def inference(args, model, test_save_path=None, data_type: str = "test"):
 
 
 def main():
-    parser = get_common_parser(state="test")
+    parser = get_common_parser()
     args = parser.parse_args()
 
     if not args.deterministic:
@@ -113,43 +113,10 @@ def main():
     # name the same snapshot defined in train script!
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
 
-    snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
-    snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
-    snapshot_path += "_" + args.vit_name
-    snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
-    snapshot_path = (
-        snapshot_path + "_vitpatch" + str(args.vit_patches_size)
-        if args.vit_patches_size != 16
-        else snapshot_path
-    )
-    snapshot_path = (
-        snapshot_path + "_epo_" + str(args.max_epochs)
-        if args.max_epochs != 30
-        else snapshot_path
-    )
-    if dataset_name == "ACDC":
-        # using max_epoch instead of iteration to control training duration
-        snapshot_path = (
-            snapshot_path + "_" + str(args.max_iterations)[0:2] + "k"
-            if args.max_iterations != 30000
-            else snapshot_path
-        )
-
-    snapshot_path = snapshot_path + "_bs" + str(args.batch_size)
-    snapshot_path = (
-        snapshot_path + "_lr_" + str(args.base_lr)
-        if args.base_lr != 0.01
-        else snapshot_path
-    )
-
-    snapshot_path = snapshot_path + "_" + str(args.img_size)
-    snapshot_path = (
-        snapshot_path + "_s" + str(args.seed) if args.seed != 1234 else snapshot_path
-    )
-
+    snapshot_path = get_snapshot_path(args)
     snapshot_name = snapshot_path.split("/")[-1]
 
-    log_folder = f"{args.snapshot_dir}/test_log/test_log_{args.exp}"
+    log_folder = f"{args.snapshot_dir}/test_log_{args.exp}"
     os.makedirs(log_folder, exist_ok=True)
     logging.basicConfig(
         filename=log_folder + "/" + snapshot_name + ".txt",
@@ -165,9 +132,12 @@ def main():
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.transformer.num_layers = args.num_transformer_layers
     config_vit.n_classes = args.num_classes
-    config_vit.n_skip = args.n_skip
+
     config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
+    config_vit.n_skip = 0
     if args.vit_name.find("R50") != -1:
+        config_vit.n_skip = args.n_skip
+
         config_vit.patches.grid = (
             int(args.img_size / args.vit_patches_size),
             int(args.img_size / args.vit_patches_size),
@@ -194,7 +164,9 @@ def main():
     else:
         test_save_path = None
 
-    logging.info("-> Running Evaluation on Validation dataset to ensure correct model picked.")
+    logging.info(
+        "-> Running Evaluation on Validation dataset to ensure correct model picked."
+    )
     inference(args, net, data_type="val")
 
     logging.info("-> Running Evaluation on Test dataset.")

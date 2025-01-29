@@ -6,7 +6,7 @@ import torch.backends.cudnn as cudnn
 from networks.vit_seg_modeling import VisionTransformer
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 from trainer import trainer_synapse, trainer_acdc, trainer_uav_hsi
-from common_parser import get_common_parser, dataset_config
+from common_parser import get_common_parser, dataset_config, get_snapshot_path
 
 
 if __name__ == "__main__":
@@ -31,58 +31,31 @@ if __name__ == "__main__":
     args.list_dir = dataset_config[dataset_name]["list_dir"]
     args.is_pretrain = True
     args.exp = "TU_" + dataset_name + "_" + str(args.img_size)
-    snapshot_path = f"{args.snapshot_dir}/model/{args.exp}/TU"
-    snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
-    snapshot_path += "_" + args.vit_name
-    snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
-    snapshot_path = (
-        snapshot_path + "_vitpatch" + str(args.vit_patches_size)
-        if args.vit_patches_size != 16
-        else snapshot_path
-    )
-    snapshot_path = (
-        snapshot_path + "_" + str(args.max_iterations)[0:2] + "k"
-        if args.max_iterations != 30000
-        else snapshot_path
-    )
-    snapshot_path = (
-        snapshot_path + "_epo_" + str(args.max_epochs)
-        if args.max_epochs != 30
-        else snapshot_path
-    )
-    snapshot_path = snapshot_path + "_bs" + str(args.batch_size)
-    snapshot_path = (
-        snapshot_path + "_lr_" + str(args.base_lr)
-        if args.base_lr != 0.01
-        else snapshot_path
-    )
-    snapshot_path = snapshot_path + "_" + str(args.img_size)
-    snapshot_path = (
-        snapshot_path + "_s" + str(args.seed) if args.seed != 1234 else snapshot_path
-    )
 
+    snapshot_path = get_snapshot_path(args)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
-        
+
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.transformer.num_layers = args.num_transformer_layers
     config_vit.n_classes = args.num_classes
     if args.checkpoint_path:
         config_vit.pretrained_path = args.checkpoint_path
-    
+
+    config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
     config_vit.n_skip = 0
-    if args.vit_name.find("R50") != -1:        
+    if args.vit_name.find("R50") != -1:
         config_vit.n_skip = args.n_skip
-        
+
         config_vit.patches.grid = (
             int(args.img_size / args.vit_patches_size),
             int(args.img_size / args.vit_patches_size),
         )
-    
+
     # =========================================================================
     dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     net = VisionTransformer(
-            config_vit, img_size=args.img_size, num_classes=config_vit.n_classes
+        config_vit, img_size=args.img_size, num_classes=config_vit.n_classes
     ).to(dev)
 
     net.load_from(weights=np.load(config_vit.pretrained_path))
@@ -91,10 +64,9 @@ if __name__ == "__main__":
             if "encoder" in name:
                 p.requires_grad = False
 
-
     trainer = {
         "Synapse": trainer_synapse,
         "ACDC": trainer_acdc,
         "UAV_HSI_Crop": trainer_uav_hsi,
     }
-    trainer[dataset_name](args, net, snapshot_path)
+    trainer[dataset_name](args, net, snapshot_path, config_vit)

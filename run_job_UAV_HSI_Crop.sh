@@ -81,7 +81,7 @@ echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --checkpoint_path ${CHECKPOINT_DIR}/${MODEL_NAME}.npz --freeze_transformer
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --n_skip 0 --checkpoint_path ${CHECKPOINT_DIR}/${MODEL_NAME}.npz --freeze_transformer
 
 # Evaluate the trained model
-python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --is_savenii
+python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --n_skip 0 --is_savenii

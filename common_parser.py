@@ -12,7 +12,7 @@ except:
     pass
 
 
-def get_common_parser(state="training"):
+def get_common_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset", type=str, default="Synapse", help="experiment_name"
@@ -127,6 +127,39 @@ def get_common_parser(state="training"):
 
     return parser
 
+
+def get_snapshot_path(args):
+    snapshot_path = f"{args.snapshot_dir}/{args.exp}/TU"
+    snapshot_path = snapshot_path + "_pretrain" if args.is_pretrain else snapshot_path
+    snapshot_path += "_" + args.vit_name
+    snapshot_path = snapshot_path + "_skip" + str(args.n_skip)
+    snapshot_path = (
+        snapshot_path + "_vitpatch" + str(args.vit_patches_size)
+        if args.vit_patches_size != 16
+        else snapshot_path
+    )
+    snapshot_path = (
+        snapshot_path + "_" + str(args.max_iterations)[0:2] + "k"
+        if args.max_iterations != 30000
+        else snapshot_path
+    )
+    snapshot_path = (
+        snapshot_path + "_epo_" + str(args.max_epochs)
+        if args.max_epochs != 30
+        else snapshot_path
+    )
+    snapshot_path = snapshot_path + "_bs" + str(args.batch_size)
+    snapshot_path = (
+        snapshot_path + "_lr_" + str(args.base_lr)
+        if args.base_lr != 0.01
+        else snapshot_path
+    )
+    snapshot_path = snapshot_path + "_" + str(args.img_size)
+    snapshot_path = (
+        snapshot_path + "_s" + str(args.seed) if args.seed != 1234 else snapshot_path
+    )
+
+    return snapshot_path
 
 dataset_config = {
     "ACDC": {

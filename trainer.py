@@ -21,7 +21,7 @@ https://github.com/lanpa/tensorboardX/
 """
 
 
-def trainer_acdc(args, model, snapshot_path):
+def trainer_acdc(args, model, snapshot_path, config_vit=None):
     from datasets import ACDC_dataset, RandomGenerator
 
     base_lr = args.base_lr
@@ -160,7 +160,7 @@ def trainer_acdc(args, model, snapshot_path):
                 break
 
 
-def trainer_uav_hsi(args, model, snapshot_path):
+def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
     from datasets import UAV_HSI_Crop_dataset, RandomGenerator
 
     def worker_init_fn(worker_id):
@@ -174,6 +174,8 @@ def trainer_uav_hsi(args, model, snapshot_path):
     )
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.info(str(args))
+    if config_vit:
+        logging.info(str(config_vit))
 
     lr_ = base_lr = args.base_lr
     decay_rate = 0.01
@@ -206,7 +208,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
 
     optimizer = optim.SGD(
         model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.001
-    ) # weight_decay=0.0001
+    )  # weight_decay=0.0001
     scaler = GradScaler()
     ce_loss = CrossEntropyLoss(ignore_index=4)
     dice_loss = DiceLoss(num_classes)
@@ -244,7 +246,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
         #     label_batch.shape,
         #     predictions.shape,
         # )
-        local_writer.add_image(f"{prefix}/Prediction", predictions[0, ...] * 7, local_num)
+        local_writer.add_image(
+            f"{prefix}/Prediction", predictions[0, ...] * 7, local_num
+        )
 
     logging.info("%s iterations per epoch", len(train_loader))
     logging.info("%s val iterations per epoch", len(val_loader))
@@ -257,9 +261,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
     max_epochs = args.max_epochs
     max_iterations = max_epochs * len(train_loader)
 
-    logging.info("="*80)
+    logging.info("=" * 80)
     logging.info("Start new experiment.")
-    logging.info("="*80)
+    logging.info("=" * 80)
 
     best_performance, loss_alpha = 0.0, 0.5
     patience, val_loss = base_patience, float("inf")
@@ -287,7 +291,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
                     val = param.grad.abs().mean()
                     my_gradients[name].append(float(val.item()))
                     # logging.info(f"Layer: %s | gradient: %s", name, val)
-                    
+
             scaler.step(optimizer)
             scaler.update()
 
@@ -297,9 +301,11 @@ def trainer_uav_hsi(args, model, snapshot_path):
             loss_dc_list.append(float(loss_dice.item()))
 
             logging.info(
-                "iteration %d, %d, loss: %f, loss_ce: %f",
+                "iteration %d, %d:%d, loss: %f, loss_ce: %f",
                 iter_num,
-                (epoch_num - 1) * len(train_loader) + i_batch,
+                epoch_num,
+                i_batch,
+                # (epoch_num - 1) * len(train_loader) + i_batch,
                 loss.item(),
                 loss_ce.item(),
             )
@@ -318,6 +324,14 @@ def trainer_uav_hsi(args, model, snapshot_path):
         writer.add_scalar("info/loss_total", np.asarray(loss_list).mean(), epoch_num)
         writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
         writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
+        logging.info(
+            "End Epoch %d | iteration %d : loss_total: %f ce_loss: %f dice_loss: %f",
+            epoch_num,
+            iter_num,
+            np.asarray(loss_list).mean(),
+            np.asarray(loss_ce_list).mean(),
+            np.asarray(loss_dc_list).mean(),
+        )
 
         for k, v in my_gradients.items():
             writer.add_scalar(f"gradient/{k}", np.asarray(v).mean(), epoch_num)
@@ -345,16 +359,32 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 loss.item(),
                 loss_ce.item(),
             )
-        
+
         loss_total_val = np.asarray(loss_list).mean()
         val_writer.add_scalar("info/loss_total", loss_total_val, epoch_num)
-        val_writer.add_scalar("info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num)
-        val_writer.add_scalar("info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num)
+        val_writer.add_scalar(
+            "info/loss_ce", np.asarray(loss_ce_list).mean(), epoch_num
+        )
+        val_writer.add_scalar(
+            "info/loss_dice", np.asarray(loss_dc_list).mean(), epoch_num
+        )
+        logging.info(
+            "Val Epoch %d | iteration %d : loss_total: %f ce_loss: %f dice_loss: %f",
+            epoch_num,
+            iter_num,
+            np.asarray(loss_list).mean(),
+            np.asarray(loss_ce_list).mean(),
+            np.asarray(loss_dc_list).mean(),
+        )
 
-        if (val_loss - loss_total_val) > 0.01:
+        if (val_loss - loss_total_val) > 0.001:
             val_loss = loss_total_val
             patience = base_patience
-        
+
+            save_best = os.path.join(snapshot_path, "best_model.pth")
+            logging.info("Saving Best model | iteration %d epoch %s %s", iter_num, epoch_num, save_best)
+            torch.save(model.state_dict(), save_best)
+
         else:
             patience -= 1
 
@@ -366,7 +396,9 @@ def trainer_uav_hsi(args, model, snapshot_path):
                 image, label = image.to(dev), label.to(dev)
 
                 outputs = model(image)
-                image_write_helper(image, label, outputs, epoch_num, val_writer, prefix="val")
+                image_write_helper(
+                    image, label, outputs, epoch_num, val_writer, prefix="val"
+                )
 
                 metric_i = test_single_volume(
                     image,
@@ -445,7 +477,7 @@ def trainer_uav_hsi(args, model, snapshot_path):
     logging.info("Training Finished!")
 
 
-def trainer_synapse(args, model, snapshot_path):
+def trainer_synapse(args, model, snapshot_path, config_vit=None):
     from datasets import RandomGenerator, Synapse_dataset
 
     logging.basicConfig(
