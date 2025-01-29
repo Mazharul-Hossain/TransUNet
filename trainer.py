@@ -337,28 +337,33 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
             writer.add_scalar(f"gradient/{k}", np.asarray(v).mean(), epoch_num)
             # logging.info("Layer: %s | gradient: %s %s", k, np.array(v).mean(), v)
 
+        model.eval()
         loss_list, loss_ce_list, loss_dc_list = [], [], []
-        for i_batch, sampled_batch in enumerate(test_loader):
-            volume_batch, label_batch = sampled_batch["image"], sampled_batch["label"]
-            volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
+        with torch.no_grad():
+            for i_batch, sampled_batch in enumerate(test_loader):
+                volume_batch, label_batch = (
+                    sampled_batch["image"],
+                    sampled_batch["label"],
+                )
+                volume_batch, label_batch = volume_batch.to(dev), label_batch.to(dev)
 
-            outputs = model(volume_batch)
+                outputs = model(volume_batch)
 
-            loss_ce = ce_loss(outputs, label_batch[:].long())
-            loss_dice = dice_loss(outputs, label_batch, softmax=True)
-            loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
+                loss_ce = ce_loss(outputs, label_batch[:].long())
+                loss_dice = dice_loss(outputs, label_batch, softmax=True)
+                loss = (1.0 - loss_alpha) * loss_ce + loss_alpha * loss_dice
 
-            loss_list.append(float(loss.item()))
-            loss_ce_list.append(float(loss_ce.item()))
-            loss_dc_list.append(float(loss_dice.item()))
+                loss_list.append(float(loss.item()))
+                loss_ce_list.append(float(loss_ce.item()))
+                loss_dc_list.append(float(loss_dice.item()))
 
-            logging.info(
-                "val iteration %d, %d, loss: %f, loss_ce: %f",
-                iter_num,
-                i_batch,
-                loss.item(),
-                loss_ce.item(),
-            )
+                logging.info(
+                    "val iteration %d, %d, loss: %f, loss_ce: %f",
+                    iter_num,
+                    i_batch,
+                    loss.item(),
+                    loss_ce.item(),
+                )
 
         loss_total_val = np.asarray(loss_list).mean()
         val_writer.add_scalar("info/loss_total", loss_total_val, epoch_num)
@@ -382,7 +387,12 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
             patience = base_patience
 
             save_best = os.path.join(snapshot_path, "best_model.pth")
-            logging.info("Saving Best model | iteration %d epoch %s %s", iter_num, epoch_num, save_best)
+            logging.info(
+                "Saving Best model | iteration %d epoch %s %s",
+                iter_num,
+                epoch_num,
+                save_best,
+            )
             torch.save(model.state_dict(), save_best)
 
         else:
@@ -450,7 +460,8 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
                 performance,
                 mean_hd95,
             )
-            model.train()
+            
+        model.train()
 
         if epoch_num >= max_epochs - 1:
             save_mode_path = os.path.join(

@@ -359,6 +359,7 @@ class DecoderBlock(nn.Module):
         use_batchnorm=True,
     ):
         super().__init__()
+        self.up = nn.UpsamplingBilinear2d(scale_factor=2)
         self.conv1 = Conv2dReLU(
             in_channels + skip_channels,
             out_channels,
@@ -373,7 +374,6 @@ class DecoderBlock(nn.Module):
             padding=1,
             use_batchnorm=use_batchnorm,
         )
-        self.up = nn.UpsamplingBilinear2d(scale_factor=2)
 
     def forward(self, x, skip=None):
         x = self.up(x)
