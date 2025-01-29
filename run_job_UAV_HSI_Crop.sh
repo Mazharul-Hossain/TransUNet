@@ -41,9 +41,9 @@ DIR_NAME=/project/mhssain9
 MODEL_NAME=ViT-B_16
 DATASET=UAV_HSI_Crop
 
-CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
-# CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_09"
+# CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
+CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_10"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -52,8 +52,8 @@ if [[ ! -d "$CHECKPOINT_DIR" ]]; then
 fi
 
 if [[ ! -f ${CHECKPOINT_DIR}/${MODEL_NAME}.npz ]]; then
-  wget "https://storage.googleapis.com/vit_models/imagenet21k/${MODEL_NAME}.npz"
-  # wget "https://storage.googleapis.com/vit_models/imagenet21k%2Bimagenet2012/${MODEL_NAME}.npz"
+  # wget "https://storage.googleapis.com/vit_models/imagenet21k/${MODEL_NAME}.npz"
+  wget "https://storage.googleapis.com/vit_models/imagenet21k%2Bimagenet2012/${MODEL_NAME}.npz"
   
   mv ${MODEL_NAME}.npz ${CHECKPOINT_DIR}
 fi
@@ -81,7 +81,7 @@ echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
 # Run the classification task using the dataset and subset variables
-python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000
+python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --checkpoint_path ${CHECKPOINT_DIR}/${MODEL_NAME}.npz --freeze_transformer
 
 # Evaluate the trained model
 python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --is_savenii

@@ -65,12 +65,15 @@ if __name__ == "__main__":
         os.makedirs(snapshot_path)
         
     config_vit = CONFIGS_ViT_seg[args.vit_name]
-    config_vit.transformer.num_layers = 3
+    config_vit.transformer.num_layers = args.num_transformer_layers
     config_vit.n_classes = args.num_classes
+    if args.checkpoint_path:
+        config_vit.pretrained_path = args.checkpoint_path
+    
     config_vit.n_skip = 0
-    if args.vit_name.find("R50") != -1:
-        
+    if args.vit_name.find("R50") != -1:        
         config_vit.n_skip = args.n_skip
+        
         config_vit.patches.grid = (
             int(args.img_size / args.vit_patches_size),
             int(args.img_size / args.vit_patches_size),
@@ -83,6 +86,11 @@ if __name__ == "__main__":
     ).to(dev)
 
     net.load_from(weights=np.load(config_vit.pretrained_path))
+    if args.freeze_transformer:
+        for name, p in net.named_parameters():
+            if "encoder" in name:
+                p.requires_grad = False
+
 
     trainer = {
         "Synapse": trainer_synapse,

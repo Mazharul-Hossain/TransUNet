@@ -81,47 +81,49 @@ def get_common_parser(state="training"):
         default=16,
         help="num of workers loading data",
     )
+    parser.add_argument(
+        "--num_transformer_layers",
+        type=int,
+        default=3,
+        help="num of transformers",
+    )
+    parser.add_argument(
+        "--checkpoint_path",
+        type=str,
+        help="location for loading pretrained weights",
+    )
+    parser.add_argument(
+        "--freeze_transformer",
+        action="store_true",
+        help="if want to freeze transformer weights",
+    )
 
-    if state == "training":
-        parser.add_argument(
-            "--root_path",
-            type=str,
-            default="/project/mhssain9/data/Synapse/train_npz",
-            help="root dir for data",
-        )
-        parser.add_argument("--n_gpu", type=int, default=1, help="total gpu")
+    parser.add_argument(
+        "--root_path",
+        type=str,
+        default="/project/mhssain9/data/Synapse/train_npz",
+        help="root dir for data",
+    )
+    parser.add_argument("--n_gpu", type=int, default=1, help="total gpu")
 
-    elif state == "test":
-        parser.add_argument(
-            "--volume_path",
-            type=str,
-            default="/project/mhssain9/data/Synapse/test_vol_h5",
-            help="root dir for validation volume data",
-        )  # for acdc volume_path=root_dir
+    parser.add_argument(
+        "--volume_path",
+        type=str,
+        default="/project/mhssain9/data/Synapse/test_vol_h5",
+        help="root dir for validation volume data",
+    )  # for acdc volume_path=root_dir
 
-        # parser.add_argument(
-        #     "--num_classes", type=int, default=4, help="output channel of network"
-        # )
-        # parser.add_argument(
-        #     "--max_iterations",
-        #     type=int,
-        #     default=20000,
-        #     help="maximum epoch number to train",
-        # )
-        # parser.add_argument(
-        #     "--max_epochs", type=int, default=30, help="maximum epoch number to train"
-        # )
-        parser.add_argument(
-            "--is_savenii",
-            action="store_true",
-            help="whether to save results during inference",
-        )
-        parser.add_argument(
-            "--test_save_dir",
-            type=str,
-            default="/project/mhssain9/predictions",
-            help="saving prediction as nii!",
-        )
+    parser.add_argument(
+        "--is_savenii",
+        action="store_true",
+        help="whether to save results during inference",
+    )
+    parser.add_argument(
+        "--test_save_dir",
+        type=str,
+        default="/project/mhssain9/predictions",
+        help="saving prediction as nii!",
+    )
 
     return parser
 

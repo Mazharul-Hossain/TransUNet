@@ -24,7 +24,7 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 
-vit_name = "ViT-B_16"
+vit_name = "R50+ViT-B_16"
 num_classes = 30
 n_skip = 3
 img_size = 96 
@@ -54,6 +54,14 @@ for name, param in net.named_parameters():
     if param.requires_grad:
         print(f"Layer: {name} | Shape: {param.shape}") 
         #  | Values: {param.data}
+        
+for name, param in net.named_parameters():
+    if "encoder" in name:
+        param.requires_grad = False
+
+for name, param in net.named_parameters():
+    if param.requires_grad:
+        print(f"Layer: {name} | Shape: {param.shape}")
 
 if os.path.exists(config_vit.pretrained_path):
     print("pretrained_path", config_vit.pretrained_path)
