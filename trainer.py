@@ -269,6 +269,7 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
     patience, val_loss = base_patience, float("inf")
     iterator = tqdm(range(1, max_epochs + 1), ncols=70)
     for epoch_num in iterator:
+        model.train()
         loss_list, loss_ce_list, loss_dc_list = [], [], []
         my_gradients = collections.defaultdict(list)
 
@@ -398,7 +399,7 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
         else:
             patience -= 1
 
-        if epoch_num % 20 == 0:
+        if epoch_num % 10 == 0:
             model.eval()
             metric_list = 0.0
             for _, sampled_batch in enumerate(val_loader):
@@ -460,9 +461,7 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
                 performance,
                 mean_hd95,
             )
-            
-        model.train()
-
+        
         if epoch_num >= max_epochs - 1:
             save_mode_path = os.path.join(
                 snapshot_path, "epoch_" + str(epoch_num) + ".pth"
