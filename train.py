@@ -42,8 +42,8 @@ if __name__ == "__main__":
     if args.checkpoint_path:
         config_vit.pretrained_path = args.checkpoint_path
 
-    config_vit.transformer.attention_dropout_rate = 0.1
-    config_vit.transformer.dropout_rate = 0.2
+    # config_vit.transformer.attention_dropout_rate = 0.1
+    # config_vit.transformer.dropout_rate = 0.2
     config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
     config_vit.n_skip = 0
     if args.vit_name.find("R50") != -1:
