@@ -116,7 +116,7 @@ def main():
     snapshot_path = get_snapshot_path(args)
     snapshot_name = snapshot_path.split("/")[-1]
 
-    log_folder = f"{args.snapshot_dir}/test_log_{args.exp}"
+    log_folder = f"{args.snapshot_dir}/{args.exp}_test_log"
     os.makedirs(log_folder, exist_ok=True)
     logging.basicConfig(
         filename=log_folder + "/" + snapshot_name + ".txt",

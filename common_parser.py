@@ -97,6 +97,11 @@ def get_common_parser():
         action="store_true",
         help="if want to freeze transformer weights",
     )
+    parser.add_argument(
+        "--fine_tune",
+        action="store_true",
+        help="if want to fine tune weights",
+    )
 
     parser.add_argument(
         "--root_path",

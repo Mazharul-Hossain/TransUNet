@@ -58,7 +58,11 @@ if __name__ == "__main__":
         config_vit, img_size=args.img_size, num_classes=config_vit.n_classes
     ).to(dev)
 
-    net.load_from(weights=np.load(config_vit.pretrained_path))
+    if args.fine_tune:
+        net.load_state_dict(torch.load(config_vit.pretrained_path))
+    else:
+        net.load_from(weights=np.load(config_vit.pretrained_path))
+
     if args.freeze_transformer:
         for name, p in net.named_parameters():
             if "encoder" in name:
