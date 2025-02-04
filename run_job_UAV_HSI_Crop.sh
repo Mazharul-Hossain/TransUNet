@@ -43,7 +43,7 @@ DATASET=UAV_HSI_Crop
 
 # CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k
 CHECKPOINT_DIR=${DIR_NAME}/model/vit_checkpoint/imagenet21k+imagenet2012
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_11"
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_12"
 # rm -rf $SNAPSHOT_DIR
 
 # Download the pre-trained checkpoint.
@@ -80,7 +80,7 @@ echo "tensorboard --logdir='$SNAPSHOT_DIR' --port=65535"
 echo "ssh -N -L 65535:localhost:65535 mhssain9@itiger.memphis.edu"
 echo "########################################################################"
 
-base_lr=0.001
+base_lr=0.01
 pretrained_path="/project/mhssain9/Experiment_02/exp_10/TU_UAV_HSI_Crop_96/TU_pretrain_ViT-B_16_skip0_epo_3000_bs16_96/best_model.pth"
 # Run the classification task using the dataset and subset variables
 # python train.py --dataset ${DATASET}  --vit_name ${MODEL_NAME} --batch_size 16 --base_lr 0.01 --img_size 96 --snapshot_dir $SNAPSHOT_DIR --max_epochs 3000 --n_skip 0 --checkpoint_path ${CHECKPOINT_DIR}/${MODEL_NAME}.npz --freeze_transformer
