@@ -63,7 +63,8 @@ nvidia-smi
 # source /home/${USER}/.bashrc
 # conda activate trans_u_env
 
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_14_01"
+EXP=exp_15
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/${EXP}_01"
 if [[ ! -d "$SNAPSHOT_DIR" ]]; then
   mkdir -p ${SNAPSHOT_DIR}
 fi
@@ -89,13 +90,13 @@ python test.py --dataset ${DATASET} --vit_name ${MODEL_NAME} --batch_size 16 --b
 
 
 echo "########################################################################"
-printf "#\n# Fine-tune with exp_14  \n#\n"
+printf "#\n# Fine-tune with ${EXP}  \n#\n"
 echo "########################################################################"
 
 base_lr=0.001 # for fine_tune # 0.01 for freeze_transformer
-pretrained_path="/project/mhssain9/Experiment_02/exp_14_01/TU_UAV_HSI_Crop_96/TU_pretrain_ViT-B_16_skip0_epo3000_bs16_96/best_model.pth"
+pretrained_path="/project/mhssain9/Experiment_02/${EXP}_01/TU_UAV_HSI_Crop_96/TU_pretrain_ViT-B_16_skip0_epo3000_bs16_96/best_model.pth"
 
-SNAPSHOT_DIR="/project/mhssain9/Experiment_02/exp_14_02"
+SNAPSHOT_DIR="/project/mhssain9/Experiment_02/${EXP}_02"
 if [[ ! -d "$SNAPSHOT_DIR" ]]; then
   mkdir -p ${SNAPSHOT_DIR}
 fi

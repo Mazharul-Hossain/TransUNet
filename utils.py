@@ -132,3 +132,13 @@ def test_single_volume(
         sitk.WriteImage(lab_itk, test_save_path + "/" + case + "_gt.nii.gz")
 
     return metric_list
+
+
+"""TO DO Layer-Wise Learning Rate
+    1.  Layer-Wise Learning Rate in PyTorch
+        Implementing discriminative learning rate across model layers https://kozodoi.me/blog/20220329/discriminative-lr
+    2. Layer-wise learning rate decay. What values to use? https://www.kaggle.com/c/commonlitreadabilityprize/discussion/251761
+
+    Later work: 
+    How to determine how many layers of a transformer model to freeze when fine-tuning? https://www.reddit.com/r/LanguageTechnology/comments/10pi16y/how_to_determine_how_many_layers_of_a_transformer/
+"""

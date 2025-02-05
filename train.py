@@ -39,11 +39,14 @@ if __name__ == "__main__":
     config_vit = CONFIGS_ViT_seg[args.vit_name]
     config_vit.transformer.num_layers = args.num_transformer_layers
     config_vit.n_classes = args.num_classes
+    
     if args.checkpoint_path:
         config_vit.pretrained_path = args.checkpoint_path
 
-    # config_vit.transformer.attention_dropout_rate = 0.1
-    # config_vit.transformer.dropout_rate = 0.2
+    if not args.fine_tune:
+        config_vit.transformer.attention_dropout_rate = 0.1
+        config_vit.transformer.dropout_rate = 0.2
+
     config_vit.patches.size = (args.vit_patches_size, args.vit_patches_size)
     config_vit.n_skip = 0
     if args.vit_name.find("R50") != -1:

@@ -206,11 +206,46 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
 
     model.train()
 
+    """Computed from algorithms-for-agricultural-data\notebook-002-v03-2-data-loading-UAV-HSI-Crop-Dataset.ipynb"""
+    class_weights = [
+        0.4017091055807461,
+        0.10668305886565993,
+        0.1938323472937413,
+        0.3733617820030654,
+        3.6901800690707534,
+        81.13866471019809,
+        1271.1724137931035,
+        144.11547714514836,
+        1.3917360060056716,
+        8.744285058282218,
+        0.3124976701719959,
+        2.524029434510146,
+        33.69060423916482,
+        16.85675761235329,
+        30.38659156477538,
+        1.6403852868086504,
+        1.001034319133581,
+        10.99971691544953,
+        18.92925702097405,
+        0.6482902014205427,
+        3.8148377621431293,
+        35.47457898957498,
+        4.877580100150633,
+        77.10065962353194,
+        13.351932167500951,
+        12.320010968670735,
+        39.980422691879866,
+        119.4595762359784,
+        2.150743981168783,
+        1271.1724137931035,
+    ]
+    class_weights = torch.tensor(class_weights, dtype=torch.float)
+
     optimizer = optim.SGD(
         model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.001
     )  # weight_decay=0.0001
     scaler = GradScaler()
-    ce_loss = CrossEntropyLoss(ignore_index=4)
+    ce_loss = CrossEntropyLoss(weight=class_weights, label_smoothing=1e-5)
     dice_loss = DiceLoss(num_classes)
 
     writer = SummaryWriter(snapshot_path + "/log")
@@ -461,7 +496,7 @@ def trainer_uav_hsi(args, model, snapshot_path, config_vit=None):
                 performance,
                 mean_hd95,
             )
-        
+
         if epoch_num >= max_epochs - 1:
             save_mode_path = os.path.join(
                 snapshot_path, "epoch_" + str(epoch_num) + ".pth"

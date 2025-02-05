@@ -158,8 +158,8 @@ def main():
     net.load_state_dict(torch.load(snapshot))
 
     if args.is_savenii:
-        args.test_save_dir = os.path.join(args.snapshot_dir, "predictions")
-        test_save_path = os.path.join(args.test_save_dir, args.exp, snapshot_name)
+        args.test_save_dir = os.path.join(args.snapshot_dir, args.exp + "_predictions")
+        test_save_path = os.path.join(args.test_save_dir, snapshot_name)
         os.makedirs(test_save_path, exist_ok=True)
     else:
         test_save_path = None
